@@ -8,7 +8,7 @@ define package
     cp -r ./binaries/$(1)/$(2)/. ./${BUILD_PATH}/$(1)/$(2)
 endef
 
-.PHONY: clean run
+.PHONY: clean run build
 
 clean:
 	rm -rf ${BUILD_PATH}
