@@ -35,7 +35,7 @@ func (storage *ComponentStorage) getComponentId(t reflect.Type) int {
 }
 
 func (storage *ComponentStorage) getComponentSet(t reflect.Type) *ComponentSet[any] {
-	return &storage.componentSets[storage.registry[t]]
+	return &storage.componentSets[storage.getComponentId(t)]
 }
 
 func (storage *ComponentStorage) createEntity(components ...any) int {

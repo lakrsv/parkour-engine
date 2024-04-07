@@ -58,9 +58,9 @@ func (spriteRenderer *SpriteRenderer) render(world *World) {
 	dst = sdl.Rect{X: 100, Y: 50, W: 512, H: 512}
 
 	// TODO: Don't reach into sprite.renderer?
-	spriteRenderer.sprite.renderer.Clear()
-	spriteRenderer.sprite.renderer.SetDrawColor(255, 0, 0, 255)
-	spriteRenderer.sprite.renderer.FillRect(&sdl.Rect{W: world.Width, H: world.Height})
-	spriteRenderer.sprite.renderer.Copy(spriteRenderer.sprite.texture, &src, &dst)
+	_ = spriteRenderer.sprite.renderer.Clear()
+	_ = spriteRenderer.sprite.renderer.SetDrawColor(255, 0, 0, 255)
+	_ = spriteRenderer.sprite.renderer.FillRect(&sdl.Rect{W: world.Width, H: world.Height})
+	_ = spriteRenderer.sprite.renderer.Copy(spriteRenderer.sprite.texture, &src, &dst)
 	spriteRenderer.sprite.renderer.Present()
 }
