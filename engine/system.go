@@ -20,3 +20,8 @@ type UpdateSystem interface {
 	System
 	Update(world *World) error
 }
+
+type InitializeUpdateSystem interface {
+	InitializeSystem
+	UpdateSystem
+}

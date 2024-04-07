@@ -14,7 +14,7 @@ type World struct {
 	cancel     context.CancelFunc
 	threads    sync.WaitGroup
 	systems    map[SystemType][]System
-	components ComponentStorage
+	components *ComponentStorage
 	groups     map[Matcher]*Group
 	Time       *Time
 }
@@ -23,12 +23,17 @@ func NewWorld() *World {
 	return &World{
 		systems:    map[SystemType][]System{},
 		Time:       newTime(),
-		components: NewComponentStorage()}
+		components: NewComponentStorage(),
+		groups:     make(map[Matcher]*Group),
+	}
 }
 
 func (world *World) AddSystems(systems ...System) *World {
 	for _, system := range systems {
 		switch system.(type) {
+		case InitializeUpdateSystem:
+			world.systems[Initialize] = append(world.systems[Initialize], system)
+			world.systems[Update] = append(world.systems[Update], system)
 		case InitializeSystem:
 			world.systems[Initialize] = append(world.systems[Initialize], system)
 		case UpdateSystem:
@@ -43,14 +48,26 @@ func (world *World) RegisterComponent(t reflect.Type) {
 }
 
 func (world *World) CreateEntity(components ...any) int {
-	return world.components.createEntity(components...)
+	entity := world.components.createEntity(components...)
+	for _, group := range world.groups {
+		group.EvaluateEntity(entity, world.components)
+	}
+	return entity
+}
+
+func (world *World) DeleteEntity(entity int) {
+	world.components.deleteEntity(entity)
+	// TODO: Callback before or after actual deletion?
+	for _, group := range world.groups {
+		group.EvaluateEntity(entity, world.components)
+	}
 }
 
 func (world *World) GetGroup(m Matcher) *Group {
 	if val, ok := world.groups[m]; ok {
 		return val
 	}
-	world.groups[m] = newGroup(m, &world.components)
+	world.groups[m] = newGroup(m, world.components)
 	return world.groups[m]
 }
 
@@ -85,20 +102,19 @@ func (world *World) Simulate(ctx context.Context) error {
 }
 
 func (world *World) Close() error {
-	if world.cancel != nil {
-		world.cancel()
+	if world.cancel == nil {
+		return nil
 	}
+	world.cancel()
+	world.cancel = nil
 
-	for _, system := range world.systems[Initialize] {
-		if closer, ok := system.(io.Closer); ok {
-			if err := closer.Close(); err != nil {
-				// TODO: Handle error
-				panic(err)
-			}
+	systems := map[System]bool{}
+	for _, s := range world.systems {
+		for _, system := range s {
+			systems[system] = true
 		}
 	}
-
-	for _, system := range world.systems[Update] {
+	for system, _ := range systems {
 		if closer, ok := system.(io.Closer); ok {
 			if err := closer.Close(); err != nil {
 				// TODO: Handle error
