@@ -10,7 +10,6 @@ import (
 	"sync"
 )
 
-// World TODO: Add Time for rate limiting goroutines (update?)
 type World struct {
 	cancel     context.CancelFunc
 	threads    sync.WaitGroup
