@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"github.com/lakrsv/parkour/engine"
+	"golang.org/x/tools/container/intsets"
 	"log"
 	"reflect"
 )
@@ -42,9 +43,24 @@ func main() {
 
 	entity := w.CreateEntity(
 		Test1Component{x: 0, y: 10, z: 200},
-		Test2Component{msg: "Hello World!"})
+		Test2Component{msg: "Hello World!"},
+	)
 
 	log.Printf("Created entity %v", entity)
+
+	result := w.Query(engine.EntityQuery{WithAllComponents: []reflect.Type{
+		reflect.TypeOf(Test1Component{}),
+		reflect.TypeOf(Test2Component{}),
+	}})
+
+	for {
+		val := result.Min()
+		if val == intsets.MaxInt {
+			break
+		}
+		log.Printf("Got entity: %v", val)
+		result.Remove(val)
+	}
 
 	if err := w.Simulate(context.Background()); err != nil {
 		panic(err)
@@ -55,7 +71,7 @@ type HelloSystem struct {
 }
 
 func (helloSystem *HelloSystem) Initialize(world *engine.World) error {
-	println("Hello world!")
+	log.Println("Hello from HelloSystem!")
 	return nil
 }
 

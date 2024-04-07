@@ -28,8 +28,8 @@ func (storage *ComponentStorage) getComponentId(t reflect.Type) int {
 	return storage.registry[t]
 }
 
-func (storage *ComponentStorage) getComponentSet(t reflect.Type) ComponentSet[any] {
-	return storage.componentSets[storage.registry[t]]
+func (storage *ComponentStorage) getComponentSet(t reflect.Type) *ComponentSet[any] {
+	return &storage.componentSets[storage.registry[t]]
 }
 
 type ComponentSet[T any] struct {

@@ -57,6 +57,10 @@ func (world *World) CreateEntity(components ...any) int {
 	return entity
 }
 
+func (world *World) Query(q Query) *intsets.Sparse {
+	return q.execute(world)
+}
+
 func (world *World) Simulate(ctx context.Context) error {
 	ctx, cancel := context.WithCancel(ctx)
 	world.cancel = cancel
