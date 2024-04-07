@@ -9,3 +9,7 @@ type Test1Component struct {
 type Test2Component struct {
 	msg string
 }
+
+type Test3Component struct {
+	a uint32
+}

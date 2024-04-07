@@ -37,35 +37,49 @@ func main() {
 
 	w.RegisterComponent(reflect.TypeOf(Test1Component{}))
 	w.RegisterComponent(reflect.TypeOf(Test2Component{}))
+	w.RegisterComponent(reflect.TypeOf(Test3Component{}))
 
 	w.AddSystems(&HelloSystem{}, &UpdateSystem{}, &UpdateSystem{})
 
 	_ = w.CreateEntity(
 		Test1Component{x: 0, y: 10, z: 200},
 		Test2Component{msg: "Hello World!"},
+		Test3Component{a: 5},
 	)
 	_ = w.CreateEntity(
 		Test1Component{x: 10, y: 20, z: 300},
 	)
 
+	// AllOfComponent Manual Test
+	log.Println("Running AllOfComponent Manual Test (Expecting [0])")
+	log.Println(w.GetGroup(&engine.AllOfComponentMatcher{Components: []reflect.Type{
+		reflect.TypeOf(Test1Component{}),
+		reflect.TypeOf(Test2Component{}),
+	}}).GetEntities())
+
+	// AnyOfComponent Manual Test
+	log.Println("Running AnyOfComponent Manual Test (Expecting [0 1])")
+	log.Println(w.GetGroup(&engine.AnyOfComponentMatcher{Components: []reflect.Type{
+		reflect.TypeOf(Test1Component{}),
+		reflect.TypeOf(Test2Component{}),
+	}}).GetEntities())
+
+	// NoneOfComponent Manual Test
+	log.Println("Running NoneOfComponent Manual Test (Expecting [1])")
+	log.Println(w.GetGroup(&engine.NoneOfComponentMatcher{Components: []reflect.Type{
+		reflect.TypeOf(Test2Component{}),
+	}}).GetEntities())
+
 	// AllOf Manual Test
-	log.Println("Running AllOf Manual Test (Expecting [0])")
-	log.Println(w.GetGroup(&engine.AllOfMatcher{Components: []reflect.Type{
-		reflect.TypeOf(Test1Component{}),
-		reflect.TypeOf(Test2Component{}),
-	}}).GetEntities())
-
-	// AnyOf Manual Test
-	log.Println("Running AnyOf Manual Test (Expecting [0 1])")
-	log.Println(w.GetGroup(&engine.AnyOfMatcher{Components: []reflect.Type{
-		reflect.TypeOf(Test1Component{}),
-		reflect.TypeOf(Test2Component{}),
-	}}).GetEntities())
-
-	// NoneOf Manual Test
-	log.Println("Running NoneOf Manual Test (Expecting [1])")
-	log.Println(w.GetGroup(&engine.NoneOfMatcher{Components: []reflect.Type{
-		reflect.TypeOf(Test2Component{}),
+	log.Println("Running AllOf Manual Test (Expecting [])")
+	log.Println(w.GetGroup(&engine.AllOfMatcher{Matchers: []engine.Matcher{
+		&engine.AllOfComponentMatcher{Components: []reflect.Type{
+			reflect.TypeOf(Test1Component{}),
+			reflect.TypeOf(Test2Component{}),
+		}},
+		&engine.NoneOfComponentMatcher{Components: []reflect.Type{
+			reflect.TypeOf(Test3Component{}),
+		}},
 	}}).GetEntities())
 
 	if err := w.Simulate(context.Background()); err != nil {

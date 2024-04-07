@@ -9,15 +9,16 @@ type Matcher interface {
 	match(start *intsets.Sparse, storage *ComponentStorage) *intsets.Sparse
 }
 
-type AllOfMatcher struct {
+type AllOfComponentMatcher struct {
 	Components []reflect.Type
 }
 
-func (m *AllOfMatcher) match(start *intsets.Sparse, storage *ComponentStorage) *intsets.Sparse {
+func (m *AllOfComponentMatcher) match(start *intsets.Sparse, storage *ComponentStorage) *intsets.Sparse {
 	result := start
 	for _, t := range m.Components {
 		set := storage.getComponentSet(t)
-		if result.IsEmpty() {
+		if result == nil {
+			result = &intsets.Sparse{}
 			result.Copy(&set.entities)
 		} else {
 			result.IntersectionWith(&set.entities)
@@ -26,15 +27,16 @@ func (m *AllOfMatcher) match(start *intsets.Sparse, storage *ComponentStorage) *
 	return result
 }
 
-type AnyOfMatcher struct {
+type AnyOfComponentMatcher struct {
 	Components []reflect.Type
 }
 
-func (m *AnyOfMatcher) match(start *intsets.Sparse, storage *ComponentStorage) *intsets.Sparse {
+func (m *AnyOfComponentMatcher) match(start *intsets.Sparse, storage *ComponentStorage) *intsets.Sparse {
 	result := start
 	for _, t := range m.Components {
 		set := storage.getComponentSet(t)
-		if result.IsEmpty() {
+		if result == nil {
+			result = &intsets.Sparse{}
 			result.Copy(&set.entities)
 		} else {
 			result.UnionWith(&set.entities)
@@ -43,18 +45,66 @@ func (m *AnyOfMatcher) match(start *intsets.Sparse, storage *ComponentStorage) *
 	return result
 }
 
-type NoneOfMatcher struct {
+type NoneOfComponentMatcher struct {
 	Components []reflect.Type
 }
 
-func (m *NoneOfMatcher) match(start *intsets.Sparse, storage *ComponentStorage) *intsets.Sparse {
+func (m *NoneOfComponentMatcher) match(start *intsets.Sparse, storage *ComponentStorage) *intsets.Sparse {
 	result := start
-	if result.IsEmpty() {
+	if result == nil {
+		result = &intsets.Sparse{}
 		result.Copy(&storage.entities)
 	}
 	for _, t := range m.Components {
 		set := storage.getComponentSet(t)
 		result.DifferenceWith(&set.entities)
+	}
+	return result
+}
+
+type AllOfMatcher struct {
+	Matchers []Matcher
+}
+
+func (m *AllOfMatcher) match(start *intsets.Sparse, storage *ComponentStorage) *intsets.Sparse {
+	result := start
+	for _, mx := range m.Matchers {
+		if result == nil {
+			result = mx.match(nil, storage)
+		} else {
+			result.IntersectionWith(mx.match(result, storage))
+		}
+	}
+	return result
+}
+
+type AnyOfMatcher struct {
+	Matchers []Matcher
+}
+
+func (m *AnyOfMatcher) match(start *intsets.Sparse, storage *ComponentStorage) *intsets.Sparse {
+	result := start
+	if result == nil {
+		result = &intsets.Sparse{}
+	}
+	for _, mx := range m.Matchers {
+		result.UnionWith(mx.match(result, storage))
+	}
+	return result
+}
+
+type NoneOfMatcher struct {
+	Matchers []Matcher
+}
+
+func (m *NoneOfMatcher) match(start *intsets.Sparse, storage *ComponentStorage) *intsets.Sparse {
+	result := start
+	if result == nil {
+		result = &intsets.Sparse{}
+		result.Copy(&storage.entities)
+	}
+	for _, mx := range m.Matchers {
+		result.DifferenceWith(mx.match(result, storage))
 	}
 	return result
 }
@@ -68,7 +118,7 @@ type Group struct {
 func newGroup(matcher Matcher, storage *ComponentStorage) *Group {
 	return &Group{
 		matcher: matcher,
-		result:  matcher.match(&intsets.Sparse{}, storage),
+		result:  matcher.match(nil, storage),
 	}
 }
 
