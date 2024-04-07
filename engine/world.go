@@ -114,7 +114,7 @@ func (world *World) Close() error {
 			systems[system] = true
 		}
 	}
-	for system, _ := range systems {
+	for system := range systems {
 		if closer, ok := system.(io.Closer); ok {
 			if err := closer.Close(); err != nil {
 				// TODO: Handle error
