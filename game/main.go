@@ -2,7 +2,7 @@ package main
 
 import (
 	"context"
-	"github.com/lakrsv/parkour/engine/world"
+	"github.com/lakrsv/parkour/engine"
 	"log"
 )
 
@@ -32,7 +32,7 @@ import (
 //}
 
 func main() {
-	w := world.NewWorld()
+	w := engine.NewWorld()
 	w.AddSystems(&HelloSystem{}, &UpdateSystem{}, &UpdateSystem{})
 
 	if err := w.Simulate(context.Background()); err != nil {
@@ -43,7 +43,7 @@ func main() {
 type HelloSystem struct {
 }
 
-func (helloSystem *HelloSystem) Initialize(world *world.World) error {
+func (helloSystem *HelloSystem) Initialize(world *engine.World) error {
 	println("Hello world!")
 	return nil
 }
@@ -52,7 +52,7 @@ type UpdateSystem struct {
 	num int
 }
 
-func (updateSystem *UpdateSystem) Update(world *world.World) error {
+func (updateSystem *UpdateSystem) Update(world *engine.World) error {
 	updateSystem.num += 1
 	if updateSystem.num > 10000 {
 		world.Close()
