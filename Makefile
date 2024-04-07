@@ -8,7 +8,11 @@ define package
     cp -r ./binaries/$(1)/$(2)/. ./${BUILD_PATH}/$(1)/$(2)
 endef
 
-.PHONY: clean run build generate
+.PHONY: clean run build generate lint
+
+lint:
+	golangci-lint run ./engine/...
+	golangci-lint run ./game/...
 
 clean:
 	rm -rf ${BUILD_PATH}
