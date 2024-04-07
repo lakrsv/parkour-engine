@@ -15,6 +15,7 @@ type World struct {
 	threads    sync.WaitGroup
 	systems    map[SystemType][]System
 	components ComponentStorage
+	groups     map[Matcher]*Group
 	Time       *Time
 }
 
@@ -46,7 +47,11 @@ func (world *World) CreateEntity(components ...any) int {
 }
 
 func (world *World) GetGroup(m Matcher) *Group {
-	return newGroup(m, &world.components)
+	if val, ok := world.groups[m]; ok {
+		return val
+	}
+	world.groups[m] = newGroup(m, &world.components)
+	return world.groups[m]
 }
 
 func (world *World) Simulate(ctx context.Context) error {
