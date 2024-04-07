@@ -49,21 +49,21 @@ func main() {
 	)
 
 	// AllOf Manual Test
-	log.Println("Running AllOf Manual Test (Expecting id 0)")
+	log.Println("Running AllOf Manual Test (Expecting [0])")
 	log.Println(w.GetGroup(&engine.AllOfMatcher{Components: []reflect.Type{
 		reflect.TypeOf(Test1Component{}),
 		reflect.TypeOf(Test2Component{}),
 	}}).GetEntities())
 
 	// AnyOf Manual Test
-	log.Println("Running AnyOf Manual Test (Expecting id 0 and 1)")
+	log.Println("Running AnyOf Manual Test (Expecting [0 1])")
 	log.Println(w.GetGroup(&engine.AnyOfMatcher{Components: []reflect.Type{
 		reflect.TypeOf(Test1Component{}),
 		reflect.TypeOf(Test2Component{}),
 	}}).GetEntities())
 
 	// NoneOf Manual Test
-	log.Println("Running NoneOf Manual Test (Expecting id 1)")
+	log.Println("Running NoneOf Manual Test (Expecting [1])")
 	log.Println(w.GetGroup(&engine.NoneOfMatcher{Components: []reflect.Type{
 		reflect.TypeOf(Test2Component{}),
 	}}).GetEntities())
