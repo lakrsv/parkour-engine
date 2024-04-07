@@ -32,9 +32,7 @@ import (
 
 func main() {
 	w := world.NewWorld()
-	w.AddInitializeSystems(&HelloSystem{})
-	w.AddUpdateSystems(&UpdateSystem{}, &UpdateSystem{})
-	w.AddSystems(&HelloSystem{})
+	w.AddSystems(&HelloSystem{}, &UpdateSystem{}, &UpdateSystem{})
 
 	if err := w.Simulate(context.Background()); err != nil {
 		panic(err)

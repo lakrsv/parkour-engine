@@ -9,31 +9,26 @@ import (
 )
 
 type World struct {
-	cancel            context.CancelFunc
-	threads           sync.WaitGroup
-	initializeSystems []InitializeSystem
-	updateSystems     []UpdateSystem
-	systems           []System
+	cancel  context.CancelFunc
+	threads sync.WaitGroup
+	systems map[int][]System
+	//initializeSystems []InitializeSystem
+	//updateSystems     []UpdateSystem
 }
 
 func NewWorld() *World {
-	return &World{initializeSystems: []InitializeSystem{}, updateSystems: []UpdateSystem{}}
+	return &World{systems: map[int][]System{}}
 }
 
 func (world *World) AddSystems(systems ...System) *World {
-	world.systems = append(world.systems, systems...)
-	world.threads.Add(len(systems))
-	return world
-}
-
-func (world *World) AddInitializeSystems(systems ...InitializeSystem) *World {
-	world.initializeSystems = append(world.initializeSystems, systems...)
-	world.threads.Add(len(systems))
-	return world
-}
-
-func (world *World) AddUpdateSystems(systems ...UpdateSystem) *World {
-	world.updateSystems = append(world.updateSystems, systems...)
+	for _, system := range systems {
+		switch system.(type) {
+		case InitializeSystem:
+			world.systems[INITIALIZE_SYSTEM] = append(world.systems[INITIALIZE_SYSTEM], system)
+		case UpdateSystem:
+			world.systems[UPDATE_SYSTEM] = append(world.systems[UPDATE_SYSTEM], system)
+		}
+	}
 	world.threads.Add(len(systems))
 	return world
 }
@@ -42,8 +37,11 @@ func (world *World) Simulate(ctx context.Context) error {
 	ctx, cancel := context.WithCancel(ctx)
 	world.cancel = cancel
 
+	// TODO: How to wait before going to update here.. sync?
 	world.initialize()
+
 	for {
+		// TODO: How to ensure all systems have updated once before going on
 		world.update()
 	}
 }
@@ -54,7 +52,7 @@ func (world *World) Close() error {
 		world.cancel()
 	}
 
-	for _, system := range world.initializeSystems {
+	for _, system := range world.systems[INITIALIZE_SYSTEM] {
 		if closer, ok := system.(io.Closer); ok {
 			if err := closer.Close(); err != nil {
 				// TODO: Handle error
@@ -63,7 +61,7 @@ func (world *World) Close() error {
 		}
 	}
 
-	for _, system := range world.updateSystems {
+	for _, system := range world.systems[UPDATE_SYSTEM] {
 		if closer, ok := system.(io.Closer); ok {
 			if err := closer.Close(); err != nil {
 				// TODO: Handle error
@@ -78,10 +76,10 @@ func (world *World) Close() error {
 }
 
 func (world *World) initialize() {
-	for _, system := range world.initializeSystems {
+	for _, system := range world.systems[INITIALIZE_SYSTEM] {
 		initialize := func() {
 			defer handlePanic()
-			if err := system.Initialize(world); err != nil {
+			if err := system.(InitializeSystem).Initialize(world); err != nil {
 				// TODO: Handle error
 				panic(err)
 			}
@@ -91,10 +89,10 @@ func (world *World) initialize() {
 }
 
 func (world *World) update() {
-	for _, system := range world.updateSystems {
+	for _, system := range world.systems[UPDATE_SYSTEM] {
 		update := func() {
 			defer handlePanic()
-			if err := system.Update(world); err != nil {
+			if err := system.(UpdateSystem).Update(world); err != nil {
 				// TODO: Handle error
 				panic(err)
 			}
