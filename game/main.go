@@ -41,26 +41,33 @@ func main() {
 
 	w.AddSystems(&HelloSystem{}, &UpdateSystem{}, &UpdateSystem{})
 
-	entity := w.CreateEntity(
+	_ = w.CreateEntity(
 		Test1Component{x: 0, y: 10, z: 200},
 		Test2Component{msg: "Hello World!"},
 	)
+	_ = w.CreateEntity(
+		Test1Component{x: 10, y: 20, z: 300},
+	)
 
-	log.Printf("Created entity %v", entity)
-
-	result := w.Query(engine.EntityQuery{WithAllComponents: []reflect.Type{
+	// AllOf Manual Test
+	log.Println("Running AllOf Manual Test (Expecting id 0)")
+	printResultTest(w.GetEntities(&engine.AllOfMatcher{Components: []reflect.Type{
 		reflect.TypeOf(Test1Component{}),
 		reflect.TypeOf(Test2Component{}),
-	}})
+	}}))
 
-	for {
-		val := result.Min()
-		if val == intsets.MaxInt {
-			break
-		}
-		log.Printf("Got entity: %v", val)
-		result.Remove(val)
-	}
+	// AnyOf Manual Test
+	log.Println("Running AnyOf Manual Test (Expecting id 0 and 1)")
+	printResultTest(w.GetEntities(&engine.AnyOfMatcher{Components: []reflect.Type{
+		reflect.TypeOf(Test1Component{}),
+		reflect.TypeOf(Test2Component{}),
+	}}))
+
+	// NoneOf Manual Test
+	log.Println("Running NoneOf Manual Test (Expecting id 1)")
+	printResultTest(w.GetEntities(&engine.NoneOfMatcher{Components: []reflect.Type{
+		reflect.TypeOf(Test2Component{}),
+	}}))
 
 	if err := w.Simulate(context.Background()); err != nil {
 		panic(err)
@@ -88,4 +95,15 @@ func (updateSystem *UpdateSystem) Update(world *engine.World) error {
 	}
 	log.Printf("Time elapsed %v", world.Time.DeltaTime)
 	return nil
+}
+
+func printResultTest(result *intsets.Sparse) {
+	for {
+		val := result.Min()
+		if val == intsets.MaxInt {
+			break
+		}
+		log.Printf("Got entity with id: %v", val)
+		result.Remove(val)
+	}
 }

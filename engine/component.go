@@ -11,11 +11,16 @@ const (
 
 type ComponentStorage struct {
 	registry      map[reflect.Type]int
+	entities      intsets.Sparse
 	componentSets []ComponentSet[any]
 }
 
 func NewComponentStorage() ComponentStorage {
-	return ComponentStorage{registry: map[reflect.Type]int{}, componentSets: []ComponentSet[any]{}}
+	return ComponentStorage{
+		registry:      map[reflect.Type]int{},
+		entities:      intsets.Sparse{},
+		componentSets: []ComponentSet[any]{},
+	}
 }
 
 func (storage *ComponentStorage) registerComponent(t reflect.Type) {
@@ -30,6 +35,17 @@ func (storage *ComponentStorage) getComponentId(t reflect.Type) int {
 
 func (storage *ComponentStorage) getComponentSet(t reflect.Type) *ComponentSet[any] {
 	return &storage.componentSets[storage.registry[t]]
+}
+
+func (storage *ComponentStorage) createEntity(components ...any) int {
+	entity := storage.entities.Len()
+	storage.entities.Insert(entity)
+
+	for _, component := range components {
+		set := storage.getComponentSet(reflect.TypeOf(component))
+		set.addEntityComponent(entity, component)
+	}
+	return entity
 }
 
 type ComponentSet[T any] struct {

@@ -16,7 +16,6 @@ type World struct {
 	cancel     context.CancelFunc
 	threads    sync.WaitGroup
 	systems    map[SystemType][]System
-	entities   intsets.Sparse
 	components ComponentStorage
 	Time       *Time
 }
@@ -25,7 +24,6 @@ func NewWorld() *World {
 	return &World{
 		systems:    map[SystemType][]System{},
 		Time:       newTime(),
-		entities:   intsets.Sparse{},
 		components: NewComponentStorage()}
 }
 
@@ -46,19 +44,11 @@ func (world *World) RegisterComponent(t reflect.Type) {
 }
 
 func (world *World) CreateEntity(components ...any) int {
-	entity := world.entities.Len()
-	world.entities.Insert(entity)
-
-	for _, component := range components {
-		set := world.components.getComponentSet(reflect.TypeOf(component))
-		set.addEntityComponent(entity, component)
-	}
-
-	return entity
+	return world.components.createEntity(components...)
 }
 
-func (world *World) Query(q Query) *intsets.Sparse {
-	return q.execute(world)
+func (world *World) GetEntities(m Matcher) *intsets.Sparse {
+	return m.match(&intsets.Sparse{}, &world.components)
 }
 
 func (world *World) Simulate(ctx context.Context) error {
