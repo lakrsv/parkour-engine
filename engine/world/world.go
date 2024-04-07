@@ -40,8 +40,7 @@ func (world *World) Simulate(ctx context.Context) error {
 
 	world.initialize()
 
-	limiter := rate.NewLimiter(rate.Every(world.Time.UpdateInterval), 1)
-	println(world.Time.UpdateInterval.Milliseconds())
+	limiter := rate.NewLimiter(rate.Every(world.Time.Timestep), 1)
 
 	for {
 		if err := limiter.Wait(ctx); err != nil {
