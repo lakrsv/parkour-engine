@@ -76,7 +76,7 @@ func main() {
 type HelloSystem struct {
 }
 
-func (helloSystem *HelloSystem) Initialize(world *engine.World) error {
+func (helloSystem *HelloSystem) Initialize(_ *engine.World) error {
 	log.Println("Hello from HelloSystem!")
 	return nil
 }

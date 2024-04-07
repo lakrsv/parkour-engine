@@ -54,13 +54,13 @@ func NewSpriteRenderer(sprite *Sprite) (*SpriteRenderer, error) {
 func (spriteRenderer *SpriteRenderer) render(world *World) {
 	var src, dst sdl.Rect
 	// TODO: ??
-	src = sdl.Rect{0, 0, 512, 512}
-	dst = sdl.Rect{100, 50, 512, 512}
+	src = sdl.Rect{W: 512, H: 512}
+	dst = sdl.Rect{X: 100, Y: 50, W: 512, H: 512}
 
 	// TODO: Don't reach into sprite.renderer?
 	spriteRenderer.sprite.renderer.Clear()
 	spriteRenderer.sprite.renderer.SetDrawColor(255, 0, 0, 255)
-	spriteRenderer.sprite.renderer.FillRect(&sdl.Rect{0, 0, world.Width, world.Height})
+	spriteRenderer.sprite.renderer.FillRect(&sdl.Rect{W: world.Width, H: world.Height})
 	spriteRenderer.sprite.renderer.Copy(spriteRenderer.sprite.texture, &src, &dst)
 	spriteRenderer.sprite.renderer.Present()
 }
