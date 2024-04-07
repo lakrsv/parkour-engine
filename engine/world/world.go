@@ -2,6 +2,7 @@ package world
 
 import (
 	"context"
+	"golang.org/x/time/rate"
 	"io"
 	"log"
 	"runtime/debug"
@@ -13,10 +14,11 @@ type World struct {
 	cancel  context.CancelFunc
 	threads sync.WaitGroup
 	systems map[SystemType][]System
+	Time    *Time
 }
 
 func NewWorld() *World {
-	return &World{systems: map[SystemType][]System{}}
+	return &World{systems: map[SystemType][]System{}, Time: newTime()}
 }
 
 func (world *World) AddSystems(systems ...System) *World {
@@ -36,12 +38,17 @@ func (world *World) Simulate(ctx context.Context) error {
 	ctx, cancel := context.WithCancel(ctx)
 	world.cancel = cancel
 
-	// TODO: How to wait before going to update here.. sync?
 	world.initialize()
 
+	limiter := rate.NewLimiter(rate.Every(world.Time.UpdateInterval), 1)
+	println(world.Time.UpdateInterval.Milliseconds())
+
 	for {
-		// TODO: How to ensure all systems have updated once before going on
+		if err := limiter.Wait(ctx); err != nil {
+			panic(err)
+		}
 		world.update()
+		world.Time.update()
 	}
 }
 
@@ -83,7 +90,7 @@ func (world *World) initialize() {
 				panic(err)
 			}
 		}
-		go initialize()
+		initialize()
 	}
 }
 
@@ -96,7 +103,7 @@ func (world *World) update() {
 				panic(err)
 			}
 		}
-		go update()
+		update()
 	}
 }
 

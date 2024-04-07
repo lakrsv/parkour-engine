@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"github.com/lakrsv/parkour/engine/world"
+	"log"
 )
 
 //import (
@@ -52,7 +53,7 @@ type UpdateSystem struct {
 }
 
 func (updateSystem *UpdateSystem) Update(world *world.World) error {
-	println(updateSystem.num)
 	updateSystem.num += 1
+	log.Printf("Time elapsed %v", world.Time.DeltaTime)
 	return nil
 }
