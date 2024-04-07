@@ -3,9 +3,11 @@ package world
 type System interface {
 }
 
+type SystemType int
+
 const (
-	INITIALIZE_SYSTEM = iota
-	UPDATE_SYSTEM     = iota
+	INITIALIZE_SYSTEM SystemType = iota
+	UPDATE_SYSTEM                = iota
 )
 
 type InitializeSystem interface {

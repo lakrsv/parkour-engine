@@ -11,13 +11,13 @@ import (
 type World struct {
 	cancel  context.CancelFunc
 	threads sync.WaitGroup
-	systems map[int][]System
+	systems map[SystemType][]System
 	//initializeSystems []InitializeSystem
 	//updateSystems     []UpdateSystem
 }
 
 func NewWorld() *World {
-	return &World{systems: map[int][]System{}}
+	return &World{systems: map[SystemType][]System{}}
 }
 
 func (world *World) AddSystems(systems ...System) *World {
