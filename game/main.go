@@ -82,7 +82,9 @@ type UpdateSystem struct {
 func (updateSystem *UpdateSystem) Update(world *engine.World) error {
 	updateSystem.num += 1
 	if updateSystem.num > 10 {
-		world.Close()
+		if err := world.Close(); err != nil {
+			panic(err)
+		}
 	}
 	log.Printf("Time elapsed %v", world.Time.DeltaTime)
 	return nil

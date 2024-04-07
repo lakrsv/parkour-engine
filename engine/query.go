@@ -16,7 +16,6 @@ func (q EntityQuery) execute(world *World) *intsets.Sparse {
 	result := &intsets.Sparse{}
 	for _, t := range q.WithAllComponents {
 		set := world.components.getComponentSet(t)
-		l := set.entities.Len()
 		if result.IsEmpty() {
 			result.Copy(&set.entities)
 		} else {
