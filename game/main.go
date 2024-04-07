@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/lakrsv/parkour/engine"
 	"log"
+	"reflect"
 )
 
 //import (
@@ -33,7 +34,17 @@ import (
 
 func main() {
 	w := engine.NewWorld()
+
+	w.RegisterComponent(reflect.TypeOf(Test1Component{}))
+	w.RegisterComponent(reflect.TypeOf(Test2Component{}))
+
 	w.AddSystems(&HelloSystem{}, &UpdateSystem{}, &UpdateSystem{})
+
+	entity := w.CreateEntity(
+		Test1Component{x: 0, y: 10, z: 200},
+		Test2Component{msg: "Hello World!"})
+
+	log.Printf("Created entity %v", entity)
 
 	if err := w.Simulate(context.Background()); err != nil {
 		panic(err)
@@ -54,7 +65,7 @@ type UpdateSystem struct {
 
 func (updateSystem *UpdateSystem) Update(world *engine.World) error {
 	updateSystem.num += 1
-	if updateSystem.num > 10000 {
+	if updateSystem.num > 10 {
 		world.Close()
 	}
 	log.Printf("Time elapsed %v", world.Time.DeltaTime)

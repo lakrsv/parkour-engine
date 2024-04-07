@@ -3,23 +3,30 @@ package engine
 import (
 	"context"
 	"golang.org/x/time/rate"
+	"golang.org/x/tools/container/intsets"
 	"io"
 	"log"
+	"reflect"
 	"runtime/debug"
 	"sync"
 )
 
 // World TODO: Add Time for rate limiting goroutines (update?)
 type World struct {
-	cancel   context.CancelFunc
-	threads  sync.WaitGroup
-	systems  map[SystemType][]System
-	entities []Entity
-	Time     *Time
+	cancel     context.CancelFunc
+	threads    sync.WaitGroup
+	systems    map[SystemType][]System
+	entities   intsets.Sparse
+	components ComponentStorage
+	Time       *Time
 }
 
 func NewWorld() *World {
-	return &World{systems: map[SystemType][]System{}, Time: newTime()}
+	return &World{
+		systems:    map[SystemType][]System{},
+		Time:       newTime(),
+		entities:   intsets.Sparse{},
+		components: NewComponentStorage()}
 }
 
 func (world *World) AddSystems(systems ...System) *World {
@@ -32,6 +39,22 @@ func (world *World) AddSystems(systems ...System) *World {
 		}
 	}
 	return world
+}
+
+func (world *World) RegisterComponent(t reflect.Type) {
+	world.components.registerComponent(t)
+}
+
+func (world *World) CreateEntity(components ...any) int {
+	entity := world.entities.Len()
+	world.entities.Insert(entity)
+
+	for _, component := range components {
+		set := world.components.getComponentSet(reflect.TypeOf(component))
+		set.addEntityComponent(entity, component)
+	}
+
+	return entity
 }
 
 func (world *World) Simulate(ctx context.Context) error {
@@ -87,12 +110,6 @@ func (world *World) Close() error {
 		}
 	}
 	return nil
-}
-
-func (world *World) createEntity() Entity {
-	entity := newEntity(EntityIndex(len(world.entities)))
-	world.entities = append(world.entities, entity)
-	return entity
 }
 
 func (world *World) initialize() {
