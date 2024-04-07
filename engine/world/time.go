@@ -5,8 +5,8 @@ import (
 )
 
 type Time struct {
-	DeltaTime       time.Duration
 	Current         time.Time
+	DeltaTime       time.Duration
 	Timestep        time.Duration
 	PhysicsTimestep time.Duration
 }
