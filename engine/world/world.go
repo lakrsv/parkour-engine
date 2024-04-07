@@ -8,12 +8,11 @@ import (
 	"sync"
 )
 
+// World TODO: Add Time for rate limiting goroutines (update?)
 type World struct {
 	cancel  context.CancelFunc
 	threads sync.WaitGroup
 	systems map[SystemType][]System
-	//initializeSystems []InitializeSystem
-	//updateSystems     []UpdateSystem
 }
 
 func NewWorld() *World {
@@ -24,9 +23,9 @@ func (world *World) AddSystems(systems ...System) *World {
 	for _, system := range systems {
 		switch system.(type) {
 		case InitializeSystem:
-			world.systems[INITIALIZE_SYSTEM] = append(world.systems[INITIALIZE_SYSTEM], system)
+			world.systems[Initialize] = append(world.systems[Initialize], system)
 		case UpdateSystem:
-			world.systems[UPDATE_SYSTEM] = append(world.systems[UPDATE_SYSTEM], system)
+			world.systems[Update] = append(world.systems[Update], system)
 		}
 	}
 	world.threads.Add(len(systems))
@@ -52,7 +51,7 @@ func (world *World) Close() error {
 		world.cancel()
 	}
 
-	for _, system := range world.systems[INITIALIZE_SYSTEM] {
+	for _, system := range world.systems[Initialize] {
 		if closer, ok := system.(io.Closer); ok {
 			if err := closer.Close(); err != nil {
 				// TODO: Handle error
@@ -61,7 +60,7 @@ func (world *World) Close() error {
 		}
 	}
 
-	for _, system := range world.systems[UPDATE_SYSTEM] {
+	for _, system := range world.systems[Update] {
 		if closer, ok := system.(io.Closer); ok {
 			if err := closer.Close(); err != nil {
 				// TODO: Handle error
@@ -76,7 +75,7 @@ func (world *World) Close() error {
 }
 
 func (world *World) initialize() {
-	for _, system := range world.systems[INITIALIZE_SYSTEM] {
+	for _, system := range world.systems[Initialize] {
 		initialize := func() {
 			defer handlePanic()
 			if err := system.(InitializeSystem).Initialize(world); err != nil {
@@ -89,7 +88,7 @@ func (world *World) initialize() {
 }
 
 func (world *World) update() {
-	for _, system := range world.systems[UPDATE_SYSTEM] {
+	for _, system := range world.systems[Update] {
 		update := func() {
 			defer handlePanic()
 			if err := system.(UpdateSystem).Update(world); err != nil {

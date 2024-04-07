@@ -3,11 +3,12 @@ package world
 type System interface {
 }
 
+// SystemType TODO: Can I force this enum onto the interface?
 type SystemType int
 
 const (
-	INITIALIZE_SYSTEM SystemType = iota
-	UPDATE_SYSTEM                = iota
+	Initialize SystemType = iota
+	Update                = iota
 )
 
 type InitializeSystem interface {
