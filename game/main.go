@@ -54,6 +54,9 @@ type UpdateSystem struct {
 
 func (updateSystem *UpdateSystem) Update(world *world.World) error {
 	updateSystem.num += 1
+	if updateSystem.num > 10000 {
+		world.Close()
+	}
 	log.Printf("Time elapsed %v", world.Time.DeltaTime)
 	return nil
 }

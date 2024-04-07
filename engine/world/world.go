@@ -30,7 +30,6 @@ func (world *World) AddSystems(systems ...System) *World {
 			world.systems[Update] = append(world.systems[Update], system)
 		}
 	}
-	world.threads.Add(len(systems))
 	return world
 }
 
@@ -42,17 +41,28 @@ func (world *World) Simulate(ctx context.Context) error {
 
 	limiter := rate.NewLimiter(rate.Every(world.Time.Timestep), 1)
 
-	for {
-		if err := limiter.Wait(ctx); err != nil {
-			panic(err)
+	world.threads.Add(1)
+
+	go func() {
+		for {
+			select {
+			case <-ctx.Done():
+				world.threads.Done()
+				return
+			default:
+				if err := limiter.Wait(ctx); err != nil {
+					panic(err)
+				}
+				world.update()
+				world.Time.update()
+			}
 		}
-		world.update()
-		world.Time.update()
-	}
+	}()
+	world.threads.Wait()
+	return nil
 }
 
 func (world *World) Close() error {
-	world.threads.Add(1)
 	if world.cancel != nil {
 		world.cancel()
 	}
@@ -74,9 +84,6 @@ func (world *World) Close() error {
 			}
 		}
 	}
-
-	world.threads.Done()
-	world.threads.Wait()
 	return nil
 }
 
