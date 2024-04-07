@@ -44,13 +44,14 @@ func (world *World) Simulate(ctx context.Context) error {
 	world.threads.Add(1)
 
 	go func() {
+		defer world.threads.Done()
 		for {
 			select {
 			case <-ctx.Done():
-				world.threads.Done()
 				return
 			default:
 				if err := limiter.Wait(ctx); err != nil {
+					// TODO: Handle error
 					panic(err)
 				}
 				world.update()
