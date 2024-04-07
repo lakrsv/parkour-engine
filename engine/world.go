@@ -3,7 +3,6 @@ package engine
 import (
 	"context"
 	"golang.org/x/time/rate"
-	"golang.org/x/tools/container/intsets"
 	"io"
 	"log"
 	"reflect"
@@ -47,8 +46,8 @@ func (world *World) CreateEntity(components ...any) int {
 	return world.components.createEntity(components...)
 }
 
-func (world *World) GetEntities(m Matcher) *intsets.Sparse {
-	return m.match(&intsets.Sparse{}, &world.components)
+func (world *World) GetGroup(m Matcher) *Group {
+	return newGroup(m, &world.components)
 }
 
 func (world *World) Simulate(ctx context.Context) error {

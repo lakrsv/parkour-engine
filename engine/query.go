@@ -58,3 +58,38 @@ func (m *NoneOfMatcher) match(start *intsets.Sparse, storage *ComponentStorage) 
 	}
 	return result
 }
+
+type Group struct {
+	matcher  Matcher
+	result   *intsets.Sparse
+	entities []int
+}
+
+func newGroup(matcher Matcher, storage *ComponentStorage) *Group {
+	return &Group{
+		matcher: matcher,
+		result:  matcher.match(&intsets.Sparse{}, storage),
+	}
+}
+
+func (g *Group) GetEntities() []int {
+	// TODO: Caching.. But dirty later when running update
+	if g.entities != nil {
+		return g.entities
+	}
+
+	result := intsets.Sparse{}
+	result.Copy(g.result)
+
+	entities := make([]int, result.Len())
+	for i := 0; ; i++ {
+		val := result.Min()
+		if val == intsets.MaxInt {
+			break
+		}
+		entities[i] = val
+		result.Remove(val)
+	}
+	g.entities = entities
+	return entities
+}

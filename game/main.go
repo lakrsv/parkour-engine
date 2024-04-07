@@ -51,23 +51,23 @@ func main() {
 
 	// AllOf Manual Test
 	log.Println("Running AllOf Manual Test (Expecting id 0)")
-	printResultTest(w.GetEntities(&engine.AllOfMatcher{Components: []reflect.Type{
+	log.Println(w.GetGroup(&engine.AllOfMatcher{Components: []reflect.Type{
 		reflect.TypeOf(Test1Component{}),
 		reflect.TypeOf(Test2Component{}),
-	}}))
+	}}).GetEntities())
 
 	// AnyOf Manual Test
 	log.Println("Running AnyOf Manual Test (Expecting id 0 and 1)")
-	printResultTest(w.GetEntities(&engine.AnyOfMatcher{Components: []reflect.Type{
+	log.Println(w.GetGroup(&engine.AnyOfMatcher{Components: []reflect.Type{
 		reflect.TypeOf(Test1Component{}),
 		reflect.TypeOf(Test2Component{}),
-	}}))
+	}}).GetEntities())
 
 	// NoneOf Manual Test
 	log.Println("Running NoneOf Manual Test (Expecting id 1)")
-	printResultTest(w.GetEntities(&engine.NoneOfMatcher{Components: []reflect.Type{
+	log.Println(w.GetGroup(&engine.NoneOfMatcher{Components: []reflect.Type{
 		reflect.TypeOf(Test2Component{}),
-	}}))
+	}}).GetEntities())
 
 	if err := w.Simulate(context.Background()); err != nil {
 		panic(err)
