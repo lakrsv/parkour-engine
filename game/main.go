@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"github.com/lakrsv/parkour/engine"
-	"golang.org/x/tools/container/intsets"
 	"log"
 	"reflect"
 )
@@ -95,15 +94,4 @@ func (updateSystem *UpdateSystem) Update(world *engine.World) error {
 	}
 	log.Printf("Time elapsed %v", world.Time.DeltaTime)
 	return nil
-}
-
-func printResultTest(result *intsets.Sparse) {
-	for {
-		val := result.Min()
-		if val == intsets.MaxInt {
-			break
-		}
-		log.Printf("Got entity with id: %v", val)
-		result.Remove(val)
-	}
 }
