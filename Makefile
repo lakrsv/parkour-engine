@@ -8,7 +8,7 @@ define package
     cp -r ./binaries/$(1)/$(2)/. ./${BUILD_PATH}/$(1)/$(2)
 endef
 
-.PHONY: clean run build
+.PHONY: clean run build generate
 
 clean:
 	rm -rf ${BUILD_PATH}
@@ -17,7 +17,7 @@ run:
 	cd ./game && go run .
 
 
-build: build-win64 build-linux
+build: generate build-win64 build-linux
 
 build-win64: ${BUILD_PATH}/windows/amd64
 ${BUILD_PATH}/windows/amd64:
@@ -35,3 +35,6 @@ ${BUILD_PATH}/linux/amd64:
 	GOARCH="amd64" \
 	go build -o ${BINARY_NAME}-linux ./game/
 	$(call package,linux,amd64)
+
+generate:
+	go generate ./engine/...

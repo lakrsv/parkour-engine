@@ -3,12 +3,12 @@ package world
 type System interface {
 }
 
-// SystemType TODO: Can I force this enum onto the interface?
+//go:generate stringer -type=SystemType
 type SystemType int
 
 const (
 	Initialize SystemType = iota
-	Update                = iota
+	Update     SystemType = iota
 )
 
 type InitializeSystem interface {
