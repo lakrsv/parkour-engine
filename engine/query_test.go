@@ -35,64 +35,80 @@ func TestComponentMatcherMatch(t *testing.T) {
 	}{
 		{
 			name:     "AllOfComponentMatcher_1",
+			matcher:  &AllOfComponentMatcher{Components: []reflect.Type{}},
+			expected: []int{},
+		},
+		{
+			name:     "AllOfComponentMatcher_2",
 			matcher:  &AllOfComponentMatcher{Components: []reflect.Type{typeA}},
 			expected: []int{0, 2},
 		},
 		{
-			name:     "AllOfComponentMatcher_2",
+			name:     "AllOfComponentMatcher_3",
 			matcher:  &AllOfComponentMatcher{Components: []reflect.Type{typeB}},
 			expected: []int{1, 2},
 		},
 		{
-			name:     "AllOfComponentMatcher_3",
+			name:     "AllOfComponentMatcher_4",
 			matcher:  &AllOfComponentMatcher{Components: []reflect.Type{typeA, typeB}},
 			expected: []int{2},
 		},
 		{
-			name:     "AllOfComponentMatcher_4",
+			name:     "AllOfComponentMatcher_5",
 			matcher:  &AllOfComponentMatcher{Components: []reflect.Type{typeA, typeB, typeC}},
 			expected: []int{},
 		},
 		{
 			name:     "AnyOfComponentMatcher_1",
+			matcher:  &AnyOfComponentMatcher{Components: []reflect.Type{}},
+			expected: []int{},
+		},
+		{
+			name:     "AnyOfComponentMatcher_2",
 			matcher:  &AnyOfComponentMatcher{Components: []reflect.Type{typeA}},
 			expected: []int{0, 2},
 		},
 		{
-			name:     "AnyOfComponentMatcher_2",
+			name:     "AnyOfComponentMatcher_3",
 			matcher:  &AnyOfComponentMatcher{Components: []reflect.Type{typeA, typeB}},
 			expected: []int{0, 1, 2},
 		},
 		{
-			name:     "AnyOfComponentMatcher_3",
+			name:     "AnyOfComponentMatcher_4",
 			matcher:  &AnyOfComponentMatcher{Components: []reflect.Type{typeA, typeB, typeC}},
 			expected: []int{0, 1, 2, 3},
 		},
 		{
 			name:     "NoneOfComponentMatcher_1",
+			matcher:  &NoneOfComponentMatcher{Components: []reflect.Type{}},
+			expected: []int{0, 1, 2, 3},
+		},
+		{
+			name:     "NoneOfComponentMatcher_2",
 			matcher:  &NoneOfComponentMatcher{Components: []reflect.Type{typeA}},
 			expected: []int{1, 3},
 		},
 		{
-			name:     "NoneOfComponentMatcher_2",
+			name:     "NoneOfComponentMatcher_3",
 			matcher:  &NoneOfComponentMatcher{Components: []reflect.Type{typeB}},
 			expected: []int{0, 3},
 		},
 		{
-			name:     "NoneOfComponentMatcher_3",
+			name:     "NoneOfComponentMatcher_4",
 			matcher:  &NoneOfComponentMatcher{Components: []reflect.Type{typeC}},
 			expected: []int{0, 1, 2},
 		},
 		{
-			name:     "NoneOfComponentMatcher_4",
+			name:     "NoneOfComponentMatcher_5",
 			matcher:  &NoneOfComponentMatcher{Components: []reflect.Type{typeA, typeB}},
 			expected: []int{3},
 		},
 		{
-			name:     "NoneOfComponentMatcher_5",
+			name:     "NoneOfComponentMatcher_6",
 			matcher:  &NoneOfComponentMatcher{Components: []reflect.Type{typeA, typeB, typeC}},
 			expected: []int{},
 		},
+		// TODO: Tests for Matcher (non component) and matchOne
 	}
 
 	// Run test cases

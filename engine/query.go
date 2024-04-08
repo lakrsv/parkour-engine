@@ -156,6 +156,7 @@ func (m *AnyOfMatcher) matchOne(storage *ComponentStorage, entity int) *intsets.
 
 func (m *NoneOfMatcher) matchOne(storage *ComponentStorage, entity int) *intsets.Sparse {
 	result := &intsets.Sparse{}
+	result.Insert(entity)
 	for _, mx := range m.Matchers {
 		result.DifferenceWith(mx.matchOne(storage, entity))
 	}
