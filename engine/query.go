@@ -6,20 +6,39 @@ import (
 )
 
 type Matcher interface {
-	match(start *intsets.Sparse, storage *ComponentStorage) *intsets.Sparse
-	matchOne(start *intsets.Sparse, storage *ComponentStorage, entity int) *intsets.Sparse
+	match(storage *ComponentStorage) *intsets.Sparse
+	matchOne(storage *ComponentStorage, entity int) *intsets.Sparse
 }
 
 type AllOfComponentMatcher struct {
 	Components []reflect.Type
 }
 
-func (m *AllOfComponentMatcher) match(start *intsets.Sparse, storage *ComponentStorage) *intsets.Sparse {
-	result := start
-	for _, t := range m.Components {
+type AnyOfComponentMatcher struct {
+	Components []reflect.Type
+}
+
+type NoneOfComponentMatcher struct {
+	Components []reflect.Type
+}
+
+type AllOfMatcher struct {
+	Matchers []Matcher
+}
+
+type AnyOfMatcher struct {
+	Matchers []Matcher
+}
+
+type NoneOfMatcher struct {
+	Matchers []Matcher
+}
+
+func (m *AllOfComponentMatcher) match(storage *ComponentStorage) *intsets.Sparse {
+	result := &intsets.Sparse{}
+	for i, t := range m.Components {
 		set := storage.getComponentSet(t)
-		if result == nil {
-			result = &intsets.Sparse{}
+		if result.IsEmpty() && i == 0 {
 			result.Copy(set.entities)
 		} else {
 			result.IntersectionWith(set.entities)
@@ -28,13 +47,58 @@ func (m *AllOfComponentMatcher) match(start *intsets.Sparse, storage *ComponentS
 	return result
 }
 
-func (m *AllOfComponentMatcher) matchOne(start *intsets.Sparse, storage *ComponentStorage, entity int) *intsets.Sparse {
-	result := start
+func (m *AnyOfComponentMatcher) match(storage *ComponentStorage) *intsets.Sparse {
+	result := &intsets.Sparse{}
 	for _, t := range m.Components {
 		set := storage.getComponentSet(t)
-		if result == nil {
-			result = &intsets.Sparse{}
+		result.UnionWith(set.entities)
+	}
+	return result
+}
+
+func (m *NoneOfComponentMatcher) match(storage *ComponentStorage) *intsets.Sparse {
+	result := &intsets.Sparse{}
+	result.Copy(storage.entities)
+	for _, t := range m.Components {
+		set := storage.getComponentSet(t)
+		result.DifferenceWith(set.entities)
+	}
+	return result
+}
+
+func (m *AllOfMatcher) match(storage *ComponentStorage) *intsets.Sparse {
+	result := &intsets.Sparse{}
+	for i, mx := range m.Matchers {
+		if i == 0 {
+			result = mx.match(storage)
+		} else {
+			result.IntersectionWith(mx.match(storage))
 		}
+	}
+	return result
+}
+
+func (m *AnyOfMatcher) match(storage *ComponentStorage) *intsets.Sparse {
+	result := &intsets.Sparse{}
+	for _, mx := range m.Matchers {
+		result.UnionWith(mx.match(storage))
+	}
+	return result
+}
+
+func (m *NoneOfMatcher) match(storage *ComponentStorage) *intsets.Sparse {
+	result := &intsets.Sparse{}
+	result.Copy(storage.entities)
+	for _, mx := range m.Matchers {
+		result.DifferenceWith(mx.match(storage))
+	}
+	return result
+}
+
+func (m *AllOfComponentMatcher) matchOne(storage *ComponentStorage, entity int) *intsets.Sparse {
+	result := &intsets.Sparse{}
+	for _, t := range m.Components {
+		set := storage.getComponentSet(t)
 		if !set.entities.Has(entity) {
 			result.Remove(entity)
 			return result
@@ -44,31 +108,10 @@ func (m *AllOfComponentMatcher) matchOne(start *intsets.Sparse, storage *Compone
 	return result
 }
 
-type AnyOfComponentMatcher struct {
-	Components []reflect.Type
-}
-
-func (m *AnyOfComponentMatcher) match(start *intsets.Sparse, storage *ComponentStorage) *intsets.Sparse {
-	result := start
+func (m *AnyOfComponentMatcher) matchOne(storage *ComponentStorage, entity int) *intsets.Sparse {
+	result := &intsets.Sparse{}
 	for _, t := range m.Components {
 		set := storage.getComponentSet(t)
-		if result == nil {
-			result = &intsets.Sparse{}
-			result.Copy(set.entities)
-		} else {
-			result.UnionWith(set.entities)
-		}
-	}
-	return result
-}
-
-func (m *AnyOfComponentMatcher) matchOne(start *intsets.Sparse, storage *ComponentStorage, entity int) *intsets.Sparse {
-	result := start
-	for _, t := range m.Components {
-		set := storage.getComponentSet(t)
-		if result == nil {
-			result = &intsets.Sparse{}
-		}
 		if set.entities.Has(entity) {
 			result.Insert(entity)
 			return result
@@ -78,28 +121,8 @@ func (m *AnyOfComponentMatcher) matchOne(start *intsets.Sparse, storage *Compone
 	return result
 }
 
-type NoneOfComponentMatcher struct {
-	Components []reflect.Type
-}
-
-func (m *NoneOfComponentMatcher) match(start *intsets.Sparse, storage *ComponentStorage) *intsets.Sparse {
-	result := start
-	if result == nil {
-		result = &intsets.Sparse{}
-		result.Copy(storage.entities)
-	}
-	for _, t := range m.Components {
-		set := storage.getComponentSet(t)
-		result.DifferenceWith(set.entities)
-	}
-	return result
-}
-
-func (m *NoneOfComponentMatcher) matchOne(start *intsets.Sparse, storage *ComponentStorage, entity int) *intsets.Sparse {
-	result := start
-	if result == nil {
-		result = &intsets.Sparse{}
-	}
+func (m *NoneOfComponentMatcher) matchOne(storage *ComponentStorage, entity int) *intsets.Sparse {
+	result := &intsets.Sparse{}
 	for _, t := range m.Components {
 		set := storage.getComponentSet(t)
 		if set.entities.Has(entity) {
@@ -111,83 +134,30 @@ func (m *NoneOfComponentMatcher) matchOne(start *intsets.Sparse, storage *Compon
 	return result
 }
 
-type AllOfMatcher struct {
-	Matchers []Matcher
-}
-
-func (m *AllOfMatcher) match(start *intsets.Sparse, storage *ComponentStorage) *intsets.Sparse {
-	result := start
-	for _, mx := range m.Matchers {
-		if result == nil {
-			result = mx.match(nil, storage)
+func (m *AllOfMatcher) matchOne(storage *ComponentStorage, entity int) *intsets.Sparse {
+	result := &intsets.Sparse{}
+	for i, mx := range m.Matchers {
+		if i == 0 {
+			result = mx.matchOne(storage, entity)
 		} else {
-			result.IntersectionWith(mx.match(result, storage))
+			result.IntersectionWith(mx.matchOne(storage, entity))
 		}
 	}
 	return result
 }
 
-func (m *AllOfMatcher) matchOne(start *intsets.Sparse, storage *ComponentStorage, entity int) *intsets.Sparse {
-	result := start
+func (m *AnyOfMatcher) matchOne(storage *ComponentStorage, entity int) *intsets.Sparse {
+	result := &intsets.Sparse{}
 	for _, mx := range m.Matchers {
-		if result == nil {
-			result = mx.matchOne(nil, storage, entity)
-		} else {
-			result.IntersectionWith(mx.matchOne(result, storage, entity))
-		}
+		result.UnionWith(mx.matchOne(storage, entity))
 	}
 	return result
 }
 
-type AnyOfMatcher struct {
-	Matchers []Matcher
-}
-
-func (m *AnyOfMatcher) match(start *intsets.Sparse, storage *ComponentStorage) *intsets.Sparse {
-	result := start
-	if result == nil {
-		result = &intsets.Sparse{}
-	}
+func (m *NoneOfMatcher) matchOne(storage *ComponentStorage, entity int) *intsets.Sparse {
+	result := &intsets.Sparse{}
 	for _, mx := range m.Matchers {
-		result.UnionWith(mx.match(result, storage))
-	}
-	return result
-}
-
-func (m *AnyOfMatcher) matchOne(start *intsets.Sparse, storage *ComponentStorage, entity int) *intsets.Sparse {
-	result := start
-	if result == nil {
-		result = &intsets.Sparse{}
-	}
-	for _, mx := range m.Matchers {
-		result.UnionWith(mx.matchOne(result, storage, entity))
-	}
-	return result
-}
-
-type NoneOfMatcher struct {
-	Matchers []Matcher
-}
-
-func (m *NoneOfMatcher) match(start *intsets.Sparse, storage *ComponentStorage) *intsets.Sparse {
-	result := start
-	if result == nil {
-		result = &intsets.Sparse{}
-		result.Copy(storage.entities)
-	}
-	for _, mx := range m.Matchers {
-		result.DifferenceWith(mx.match(result, storage))
-	}
-	return result
-}
-
-func (m *NoneOfMatcher) matchOne(start *intsets.Sparse, storage *ComponentStorage, entity int) *intsets.Sparse {
-	result := start
-	if result == nil {
-		result = &intsets.Sparse{}
-	}
-	for _, mx := range m.Matchers {
-		result.DifferenceWith(mx.matchOne(result, storage, entity))
+		result.DifferenceWith(mx.matchOne(storage, entity))
 	}
 	return result
 }
@@ -203,7 +173,7 @@ type Group struct {
 func newGroup(matcher Matcher, storage *ComponentStorage) *Group {
 	return &Group{
 		matcher:       matcher,
-		result:        matcher.match(nil, storage),
+		result:        matcher.match(storage),
 		EntityAdded:   make(chan int),
 		EntityRemoved: make(chan int),
 	}
@@ -242,11 +212,7 @@ func (g *Group) EvaluateEntity(entity int, storage *ComponentStorage) {
 			}
 			return
 		}
-		result := &intsets.Sparse{}
-		if g.result.Has(entity) {
-			result.Insert(entity)
-		}
-		result = g.matcher.matchOne(result, storage, entity)
+		result := g.matcher.matchOne(storage, entity)
 
 		if result.Has(entity) && g.result.Has(entity) {
 			return
