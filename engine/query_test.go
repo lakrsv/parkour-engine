@@ -17,9 +17,6 @@ func TestMatcherMatch(t *testing.T) {
 	typeA := reflect.TypeOf(ComponentA{})
 	typeB := reflect.TypeOf(ComponentB{})
 	typeC := reflect.TypeOf(ComponentC{})
-	//storage.registerComponent(typeA)
-	//storage.registerComponent(typeB)
-	//storage.registerComponent(typeC)
 
 	// Add some entities to storage
 	storage.createEntity(ComponentA{})
