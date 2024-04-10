@@ -9,7 +9,7 @@ import (
 )
 
 // Test matching functionality
-func TestComponentMatcherMatch(t *testing.T) {
+func TestMatcherMatch(t *testing.T) {
 	// Mock component storage
 	storage := NewComponentStorage()
 
@@ -107,6 +107,144 @@ func TestComponentMatcherMatch(t *testing.T) {
 			name:     "NoneOfComponentMatcher_6",
 			matcher:  &NoneOfComponentMatcher{Components: []reflect.Type{typeA, typeB, typeC}},
 			expected: []int{},
+		},
+		{
+			name: "AllOfMatcher_1",
+			matcher: &AllOfMatcher{Matchers: []Matcher{
+				&AllOfComponentMatcher{Components: []reflect.Type{}},
+			}},
+			expected: []int{},
+		},
+		{
+			name: "AllOfMatcher_2",
+			matcher: &AllOfMatcher{Matchers: []Matcher{
+				&AllOfComponentMatcher{Components: []reflect.Type{typeA}},
+			}},
+			expected: []int{0, 2},
+		},
+		{
+			name: "AllOfMatcher_3",
+			matcher: &AllOfMatcher{Matchers: []Matcher{
+				&AllOfComponentMatcher{Components: []reflect.Type{typeA}},
+				&AllOfComponentMatcher{Components: []reflect.Type{typeB}},
+			}},
+			expected: []int{2},
+		},
+		{
+			name: "AllOfMatcher_4",
+			matcher: &AllOfMatcher{Matchers: []Matcher{
+				&AllOfComponentMatcher{Components: []reflect.Type{typeA}},
+				&NoneOfComponentMatcher{Components: []reflect.Type{typeB}},
+			}},
+			expected: []int{0},
+		},
+		{
+			name: "AllOfMatcher_5",
+			matcher: &AllOfMatcher{Matchers: []Matcher{
+				&AllOfComponentMatcher{Components: []reflect.Type{typeA}},
+				&AnyOfComponentMatcher{Components: []reflect.Type{typeC}},
+			}},
+			expected: []int{},
+		},
+		{
+			name: "AllOfMatcher_6",
+			matcher: &AllOfMatcher{Matchers: []Matcher{
+				&AllOfComponentMatcher{Components: []reflect.Type{typeA}},
+				&AnyOfComponentMatcher{Components: []reflect.Type{typeB}},
+			}},
+			expected: []int{2},
+		},
+		{
+			name: "AnyOfMatcher_1",
+			matcher: &AnyOfMatcher{Matchers: []Matcher{
+				&AllOfComponentMatcher{Components: []reflect.Type{}},
+			}},
+			expected: []int{},
+		},
+		{
+			name: "AnyOfMatcher_2",
+			matcher: &AnyOfMatcher{Matchers: []Matcher{
+				&AllOfComponentMatcher{Components: []reflect.Type{typeA}},
+			}},
+			expected: []int{0, 2},
+		},
+		{
+			name: "AnyOfMatcher_3",
+			matcher: &AnyOfMatcher{Matchers: []Matcher{
+				&AllOfComponentMatcher{Components: []reflect.Type{typeA}},
+				&AllOfComponentMatcher{Components: []reflect.Type{typeB}},
+			}},
+			expected: []int{0, 1, 2},
+		},
+		{
+			name: "AnyOfMatcher_4",
+			matcher: &AnyOfMatcher{Matchers: []Matcher{
+				&AllOfComponentMatcher{Components: []reflect.Type{typeA}},
+				&NoneOfComponentMatcher{Components: []reflect.Type{typeB}},
+			}},
+			expected: []int{0, 2, 3},
+		},
+		{
+			name: "AnyOfMatcher_5",
+			matcher: &AnyOfMatcher{Matchers: []Matcher{
+				&AllOfComponentMatcher{Components: []reflect.Type{typeA}},
+				&AnyOfComponentMatcher{Components: []reflect.Type{typeC}},
+			}},
+			expected: []int{0, 2, 3},
+		},
+		{
+			name: "AnyOfMatcher_6",
+			matcher: &AnyOfMatcher{Matchers: []Matcher{
+				&AllOfComponentMatcher{Components: []reflect.Type{typeA}},
+				&AnyOfComponentMatcher{Components: []reflect.Type{typeB}},
+			}},
+			expected: []int{0, 1, 2},
+		},
+		{
+			name: "NoneOfMatcher_1",
+			matcher: &NoneOfMatcher{Matchers: []Matcher{
+				&AllOfComponentMatcher{Components: []reflect.Type{}},
+			}},
+			expected: []int{0, 1, 2, 3},
+		},
+		{
+			name: "NoneOfMatcher_2",
+			matcher: &NoneOfMatcher{Matchers: []Matcher{
+				&AllOfComponentMatcher{Components: []reflect.Type{typeA}},
+			}},
+			expected: []int{1, 3},
+		},
+		{
+			name: "NoneOfMatcher_3",
+			matcher: &NoneOfMatcher{Matchers: []Matcher{
+				&AllOfComponentMatcher{Components: []reflect.Type{typeA}},
+				&AllOfComponentMatcher{Components: []reflect.Type{typeB}},
+			}},
+			expected: []int{3},
+		},
+		{
+			name: "NoneOfMatcher_4",
+			matcher: &NoneOfMatcher{Matchers: []Matcher{
+				&AllOfComponentMatcher{Components: []reflect.Type{typeA}},
+				&NoneOfComponentMatcher{Components: []reflect.Type{typeB}},
+			}},
+			expected: []int{1},
+		},
+		{
+			name: "NoneOfMatcher_5",
+			matcher: &NoneOfMatcher{Matchers: []Matcher{
+				&AllOfComponentMatcher{Components: []reflect.Type{typeA}},
+				&AnyOfComponentMatcher{Components: []reflect.Type{typeC}},
+			}},
+			expected: []int{1},
+		},
+		{
+			name: "NoneOfMatcher_6",
+			matcher: &NoneOfMatcher{Matchers: []Matcher{
+				&AllOfComponentMatcher{Components: []reflect.Type{typeA}},
+				&AnyOfComponentMatcher{Components: []reflect.Type{typeB}},
+			}},
+			expected: []int{3},
 		},
 		// TODO: Tests for Matcher (non component) and matchOne
 	}
