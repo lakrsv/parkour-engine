@@ -5,7 +5,6 @@ import (
 	"golang.org/x/time/rate"
 	"io"
 	"log/slog"
-	"reflect"
 	"runtime/debug"
 	"sync"
 	"time"
@@ -42,10 +41,6 @@ func (world *World) AddSystems(systems ...System) *World {
 		}
 	}
 	return world
-}
-
-func (world *World) RegisterComponent(t reflect.Type) {
-	world.components.registerComponent(t)
 }
 
 func (world *World) CreateEntity(components ...any) int {

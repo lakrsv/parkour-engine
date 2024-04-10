@@ -47,7 +47,11 @@ func (storage *ComponentStorage) createEntity(components ...any) int {
 	storage.entities.Insert(entity)
 
 	for _, component := range components {
-		set := storage.getComponentSet(reflect.TypeOf(component))
+		componentType := reflect.TypeOf(component)
+		if _, ok := storage.registry[componentType]; !ok {
+			storage.registerComponent(componentType)
+		}
+		set := storage.getComponentSet(componentType)
 		set.addEntityComponent(entity, component)
 	}
 	return entity

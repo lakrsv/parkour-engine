@@ -35,9 +35,10 @@ import (
 func main() {
 	w := engine.NewWorld()
 
-	w.RegisterComponent(reflect.TypeOf(Test1Component{}))
-	w.RegisterComponent(reflect.TypeOf(Test2Component{}))
-	w.RegisterComponent(reflect.TypeOf(Test3Component{}))
+	// TODO: Do this dynamically when a component is added? What's the catch?
+	//w.RegisterComponent(reflect.TypeOf(Test1Component{}))
+	//w.RegisterComponent(reflect.TypeOf(Test2Component{}))
+	//w.RegisterComponent(reflect.TypeOf(Test3Component{}))
 
 	w.AddSystems(&HelloSystem{}, &ReactiveSystem{}, &CloseSystem{})
 
