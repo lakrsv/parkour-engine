@@ -68,7 +68,11 @@ type ComponentSet[T any] struct {
 
 func (set *ComponentSet[T]) addEntityComponent(entity int, component T) {
 	if set.entities.Has(entity) {
-		slog.Error("Entity already in componentSet", slog.Int("entity", entity), slog.Any("stack", debug.Stack()))
+		slog.Error(
+			"Entity already in componentSet",
+			"entity", entity,
+			"stack", debug.Stack(),
+		)
 		return
 	}
 	set.entities.Insert(entity)

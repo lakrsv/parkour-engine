@@ -116,7 +116,10 @@ func (world *World) Close() error {
 	for system := range systems {
 		if closer, ok := system.(io.Closer); ok {
 			if err := closer.Close(); err != nil {
-				slog.Error("Failed closing system %s", slog.Any("stack", debug.Stack()))
+				slog.Error(
+					"Failed closing system %s",
+					"stack", debug.Stack(),
+				)
 			}
 		}
 	}
@@ -128,7 +131,10 @@ func (world *World) initialize() {
 		initialize := func() {
 			defer handlePanic()
 			if err := system.(InitializeSystem).Initialize(world); err != nil {
-				slog.Error("Failed initializing system", slog.Any("stack", debug.Stack()))
+				slog.Error(
+					"Failed initializing system",
+					"stack", debug.Stack(),
+				)
 			}
 		}
 		initialize()
@@ -140,7 +146,10 @@ func (world *World) update() {
 		update := func() {
 			defer handlePanic()
 			if err := system.(UpdateSystem).Update(world); err != nil {
-				slog.Error("Failed updating system", slog.Any("stack", debug.Stack()))
+				slog.Error(
+					"Failed updating system",
+					"stack", debug.Stack(),
+				)
 			}
 		}
 		update()
@@ -149,6 +158,10 @@ func (world *World) update() {
 
 func handlePanic() {
 	if r := recover(); r != nil {
-		slog.Error("Panic", slog.Any("recover", r), slog.Any("stack", debug.Stack()))
+		slog.Error(
+			"Panic",
+			"recover", r,
+			"stack", debug.Stack(),
+		)
 	}
 }
