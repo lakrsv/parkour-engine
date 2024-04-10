@@ -97,6 +97,9 @@ func (m *NoneOfMatcher) match(storage *ComponentStorage) *intsets.Sparse {
 
 func (m *AllOfComponentMatcher) matchOne(storage *ComponentStorage, entity int) *intsets.Sparse {
 	result := &intsets.Sparse{}
+	if len(m.Components) == 0 {
+		return result
+	}
 	for _, t := range m.Components {
 		set := storage.getComponentSet(t)
 		if !set.entities.Has(entity) {
@@ -110,6 +113,9 @@ func (m *AllOfComponentMatcher) matchOne(storage *ComponentStorage, entity int) 
 
 func (m *AnyOfComponentMatcher) matchOne(storage *ComponentStorage, entity int) *intsets.Sparse {
 	result := &intsets.Sparse{}
+	if len(m.Components) == 0 {
+		return result
+	}
 	for _, t := range m.Components {
 		set := storage.getComponentSet(t)
 		if set.entities.Has(entity) {

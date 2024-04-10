@@ -254,7 +254,14 @@ func TestMatcherMatch(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			// Test match function
 			result := tc.matcher.match(storage)
-			assert.ElementsMatch(t, tc.expected, toSlice(result))
+			actual := toSlice(result)
+			assert.ElementsMatch(t, tc.expected, actual)
+			// Test match one function
+			for _, expected := range tc.expected {
+				result := tc.matcher.matchOne(storage, expected)
+				actual := toSlice(result)
+				assert.ElementsMatch(t, []int{expected}, actual)
+			}
 		})
 	}
 }
