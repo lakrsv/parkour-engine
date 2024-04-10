@@ -8,6 +8,7 @@ import (
 	"reflect"
 	"runtime/debug"
 	"sync"
+	"time"
 )
 
 type World struct {
@@ -22,7 +23,7 @@ type World struct {
 func NewWorld() *World {
 	return &World{
 		systems:    map[SystemType][]System{},
-		Time:       newTime(),
+		Time:       newTime(0, time.Second/60),
 		components: NewComponentStorage(),
 		groups:     make(map[Matcher]*Group),
 	}

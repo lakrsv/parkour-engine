@@ -11,9 +11,9 @@ type Time struct {
 	PhysicsTimestep time.Duration
 }
 
-func newTime() *Time {
+func newTime(timestep time.Duration, physicsTimestep time.Duration) *Time {
 	//return &Time{Current: time.Now().UTC(), Timestep: time.Second / 60}
-	return &Time{Current: time.Now().UTC(), Timestep: 0, PhysicsTimestep: time.Second / 60}
+	return &Time{Current: time.Now().UTC(), Timestep: timestep, PhysicsTimestep: physicsTimestep}
 }
 
 func (t *Time) update() {
