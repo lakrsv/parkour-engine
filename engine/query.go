@@ -166,7 +166,6 @@ func (m *NoneOfMatcher) matchOne(storage *ComponentStorage, entity int) *intsets
 type Group struct {
 	matcher       Matcher
 	result        *intsets.Sparse
-	entities      []int
 	EntityAdded   chan int
 	EntityRemoved chan int
 }
@@ -181,11 +180,6 @@ func newGroup(matcher Matcher, storage *ComponentStorage) *Group {
 }
 
 func (g *Group) GetEntities() []int {
-	// TODO: Caching.. But dirty later when running update
-	if g.entities != nil {
-		return g.entities
-	}
-
 	result := &intsets.Sparse{}
 	result.Copy(g.result)
 
@@ -198,7 +192,6 @@ func (g *Group) GetEntities() []int {
 		entities[i] = val
 		result.Remove(val)
 	}
-	g.entities = entities
 	return entities
 }
 
@@ -207,8 +200,6 @@ func (g *Group) EvaluateEntity(entity int, storage *ComponentStorage) {
 		if !storage.entities.Has(entity) {
 			if g.result.Has(entity) {
 				g.result.Remove(entity)
-				// TODO : Better way to do this
-				g.entities = nil
 				g.EntityRemoved <- entity
 			}
 			return
@@ -224,13 +215,9 @@ func (g *Group) EvaluateEntity(entity int, storage *ComponentStorage) {
 
 		if result.Has(entity) {
 			g.result.Insert(entity)
-			// TODO : Better way to do this
-			g.entities = nil
 			g.EntityAdded <- entity
 		} else {
 			g.result.Remove(entity)
-			// TODO : Better way to do this
-			g.entities = nil
 			g.EntityRemoved <- entity
 		}
 	}()
