@@ -246,7 +246,6 @@ func TestMatcherMatch(t *testing.T) {
 			}},
 			expected: []int{3},
 		},
-		// TODO: Tests for Matcher (non component) and matchOne
 	}
 
 	// Run test cases

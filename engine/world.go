@@ -4,7 +4,7 @@ import (
 	"context"
 	"golang.org/x/time/rate"
 	"io"
-	"log"
+	"log/slog"
 	"reflect"
 	"runtime/debug"
 	"sync"
@@ -58,7 +58,6 @@ func (world *World) CreateEntity(components ...any) int {
 
 func (world *World) DeleteEntity(entity int) {
 	world.components.deleteEntity(entity)
-	// TODO: Callback before or after actual deletion?
 	for _, group := range world.groups {
 		group.EvaluateEntity(entity, world.components)
 	}
@@ -90,7 +89,6 @@ func (world *World) Simulate(ctx context.Context) error {
 				return
 			default:
 				if err := limiter.Wait(ctx); err != nil {
-					// TODO: Handle error
 					panic(err)
 				}
 				world.update()
@@ -118,8 +116,7 @@ func (world *World) Close() error {
 	for system := range systems {
 		if closer, ok := system.(io.Closer); ok {
 			if err := closer.Close(); err != nil {
-				// TODO: Handle error
-				panic(err)
+				slog.Error("Failed closing system %s", slog.Any("stack", debug.Stack()))
 			}
 		}
 	}
@@ -131,8 +128,7 @@ func (world *World) initialize() {
 		initialize := func() {
 			defer handlePanic()
 			if err := system.(InitializeSystem).Initialize(world); err != nil {
-				// TODO: Handle error
-				panic(err)
+				slog.Error("Failed initializing system", slog.Any("stack", debug.Stack()))
 			}
 		}
 		initialize()
@@ -144,8 +140,7 @@ func (world *World) update() {
 		update := func() {
 			defer handlePanic()
 			if err := system.(UpdateSystem).Update(world); err != nil {
-				// TODO: Handle error
-				panic(err)
+				slog.Error("Failed updating system", slog.Any("stack", debug.Stack()))
 			}
 		}
 		update()
@@ -154,6 +149,6 @@ func (world *World) update() {
 
 func handlePanic() {
 	if r := recover(); r != nil {
-		log.Printf("panic: %s \n %s", r, debug.Stack())
+		slog.Error("Panic", slog.Any("recover", r), slog.Any("stack", debug.Stack()))
 	}
 }

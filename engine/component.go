@@ -2,7 +2,9 @@ package engine
 
 import (
 	"golang.org/x/tools/container/intsets"
+	"log/slog"
 	"reflect"
+	"runtime/debug"
 )
 
 const (
@@ -66,8 +68,8 @@ type ComponentSet[T any] struct {
 
 func (set *ComponentSet[T]) addEntityComponent(entity int, component T) {
 	if set.entities.Has(entity) {
-		// TODO: Handle error
-		panic("Entity already exists")
+		slog.Error("Entity already in componentSet", slog.Int("entity", entity), slog.Any("stack", debug.Stack()))
+		return
 	}
 	set.entities.Insert(entity)
 	set.components[entity] = component
