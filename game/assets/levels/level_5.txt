@@ -1,0 +1,15 @@
+// First simple puzzle -- The player must follow the summon to not get locked out
+CONFIG
+CBV: Open,Color:Cyan
+YUI: Closed,Color:Cyan
+cbyuiv: Color:Cyan
+%: Color:Green
+HEADER
+################################
+## LEVEL 5/9 - CLOSED DOORS   ##
+################################
+LEVEL
+################################
+#############################%##
+#@   CyY cVuU vBiI b           #
+################################

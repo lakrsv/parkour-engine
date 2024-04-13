@@ -1,38 +1,45 @@
 package engine
 
 import (
-	"golang.org/x/tools/container/intsets"
 	"log/slog"
 	"reflect"
 	"runtime/debug"
 )
 
 const (
-	MaxEntitiesPerComponent = 8192
+	MaxEntities = 8192
 )
 
 type ComponentStorage struct {
 	registry      map[reflect.Type]int
-	entityIndex   int
-	entities      *intsets.Sparse
+	entityIndex   uint32
+	entities      *SparseSet[any]
 	componentSets []ComponentSet[any]
 }
 
 func NewComponentStorage() *ComponentStorage {
 	return &ComponentStorage{
 		registry:      map[reflect.Type]int{},
-		entities:      &intsets.Sparse{},
+		entities:      NewSparseSet[any](MaxEntities),
 		componentSets: []ComponentSet[any]{},
 	}
+}
+
+func (storage *ComponentStorage) hasComponent(t reflect.Type) bool {
+	_, ok := storage.registry[t]
+	return ok
 }
 
 func (storage *ComponentStorage) registerComponent(t reflect.Type) {
 	idx := len(storage.registry)
 	storage.registry[t] = idx
-	storage.componentSets = append(storage.componentSets, ComponentSet[any]{entities: &intsets.Sparse{}, components: make([]any, MaxEntitiesPerComponent)})
+	storage.componentSets = append(storage.componentSets, ComponentSet[any]{components: NewSparseSet[any](MaxEntities)})
 }
 
 func (storage *ComponentStorage) getComponentId(t reflect.Type) int {
+	if !storage.hasComponent(t) {
+		storage.registerComponent(t)
+	}
 	return storage.registry[t]
 }
 
@@ -40,11 +47,11 @@ func (storage *ComponentStorage) getComponentSet(t reflect.Type) *ComponentSet[a
 	return &storage.componentSets[storage.getComponentId(t)]
 }
 
-func (storage *ComponentStorage) createEntity(components ...any) int {
+func (storage *ComponentStorage) createEntity(components ...any) uint32 {
 	entity := storage.entityIndex
 	storage.entityIndex++
 
-	storage.entities.Insert(entity)
+	storage.entities.Insert(entity, entity)
 
 	for _, component := range components {
 		componentType := reflect.TypeOf(component)
@@ -52,26 +59,37 @@ func (storage *ComponentStorage) createEntity(components ...any) int {
 			storage.registerComponent(componentType)
 		}
 		set := storage.getComponentSet(componentType)
-		set.addEntityComponent(entity, component)
+		set.addComponent(entity, component)
 	}
 	return entity
 }
 
-func (storage *ComponentStorage) deleteEntity(entity int) {
+func (storage *ComponentStorage) deleteEntity(entity uint32) {
 	storage.entities.Remove(entity)
 	for _, set := range storage.componentSets {
-		set.entities.Remove(entity)
-		set.components[entity] = nil
+		set.components.Remove(entity)
 	}
 }
 
-type ComponentSet[T any] struct {
-	entities   *intsets.Sparse
-	components []T
+type ComponentSet[T comparable] struct {
+	components *SparseSet[T]
 }
 
-func (set *ComponentSet[T]) addEntityComponent(entity int, component T) {
-	if set.entities.Has(entity) {
+func (set *ComponentSet[T]) replaceComponent(entity uint32, component T) {
+	if !set.components.Contains(entity) {
+		slog.Error(
+			"Entity not in componentSet",
+			"entity", entity,
+			"stack", debug.Stack(),
+		)
+		return
+	}
+	set.components.Remove(entity)
+	set.components.Insert(entity, component)
+}
+
+func (set *ComponentSet[T]) addComponent(entity uint32, component T) {
+	if set.components.Contains(entity) {
 		slog.Error(
 			"Entity already in componentSet",
 			"entity", entity,
@@ -79,6 +97,30 @@ func (set *ComponentSet[T]) addEntityComponent(entity int, component T) {
 		)
 		return
 	}
-	set.entities.Insert(entity)
-	set.components[entity] = component
+	set.components.Insert(entity, component)
+}
+
+func (set *ComponentSet[T]) removeEntity(entity uint32) {
+	if !set.components.Contains(entity) {
+		slog.Error(
+			"Entity not in componentSet",
+			"entity", entity,
+			"stack", debug.Stack(),
+		)
+		panic("Entity not in componentSet")
+	}
+	set.components.Remove(entity)
+}
+
+func (set *ComponentSet[T]) getComponent(entity uint32) T {
+	if !set.components.Contains(entity) {
+		slog.Error(
+			"Entity not in componentSet",
+			"entity", entity,
+			"stack", debug.Stack(),
+		)
+		panic("Entity not in componentSet")
+	}
+	component, _ := set.components.Get(entity)
+	return component
 }

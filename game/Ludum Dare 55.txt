@@ -1,0 +1,74 @@
+Theme: Summoning
+
+Game Engine: Parkour Engine
+Style: 2D (Maybe ASCII?)
+
+My game engine is really lightweight, and has no rendering functionality built yet. If I am to build a game within 48 hours, I'm going to need to be conservative with the game I'm making.
+
+
+Idea #1: An ASCII art game where you defend your base against waves of enemies by summoning creatures.
+
+Summoned Creatures:
+@ = Player
+W = Warrior
+M = Mage
+A = Archer
+G = Giant
+D = Dragon
+
+Enemies:
+g = Goblin
+o = Orc
+s = Skeleton
+T = troll
+B = Boss
+
+Enemies automatically attack creatures in range
+Enemies automatically attack base if no creatures in range
+Player can walk around, collect mana, summon creatures, and help defend
+
+
+In the ASCII example below, the player has summoned three warriors and one giant infront of the base.
+The wave consists of a goblin, one orc, one troll, and one skeleton.
+. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+. . . . . . . . . . . . . . @ . . W . . . . . . . . . . . . . . . . . o . .
+= = = = = = = = . . . . . . . . . G . . . . . . . . . . . . . . . . g . T .
+= = = = = = = = . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+= = = = = . . . . . . . . . . . . W . . . . . . . . . . . . . . . . . . . .
+= = = = = . . . . . . . . . . . . W . . . . . . . . . . . . . . . . . . . .
+= = = = = . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+= = = = = . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+= = = = = = = = . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+= = = = = = = = . . . . . . . . . . . . . . . . . . . . . . . . . . . s . .
+. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+
+Idea #2: An ASCII art game where you go through puzzle rooms to complete a summoning ritual to unleash a powerful entity
+# = Wall
+(| and -) = Door (Closed, Open)
+K = Key
+A = Altar
+(Different Types of character) - Puzzle mechanics; Arrows, switches, blocks, etc.
+
+In the puzzle room below, the player has to step on the button (o),
+the key door will the open. The player must collect the key, insert it into the keyhole (~)
+and the altar room will then open.
+######################
+#.K.........|......o.#
+#############..#######
+#.........#....#######
+#..A......|....~######
+#.........#....#######
+#############..#######
+.@.............#######
+######################

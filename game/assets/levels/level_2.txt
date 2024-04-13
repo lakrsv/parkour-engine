@@ -1,0 +1,20 @@
+// Tutorial level introducing button interacting with summon, opening a door
+// It's color dependent, and the default summon color is Cyan
+CONFIG
+YU: Closed
+yY:  Color:Green
+uU:  Color:Cyan
+%: Color:Green
+HEADER
+################################
+## LEVEL 2/9 - SUMMON COLORS  ##
+################################
+LEVEL
+################################
+####   ###############   #######
+###  y  #############  u  ######
+####   ###############   #######
+##### ################# ########
+##### ################# ########
+#@      Y                 U  % #
+################################

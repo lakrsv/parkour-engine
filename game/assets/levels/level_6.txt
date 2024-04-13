@@ -1,0 +1,28 @@
+CONFIG
+C: Open,Color:Cyan
+Y: Closed,Color:Cyan
+cy: Color:Cyan
+P: Closed,Color:Red
+L: Open,Color:Green
+l: Color:Green
+nN: Color:Cyan
+N: Open
+Q: Open,Color:Red
+W: Closed,Color:Red
+qw: Color:Red
+p: Color:Red
+%: Color:Green
+HEADER
+################################
+## LEVEL 6/9 - SIDE EFFECTS   ##
+################################
+LEVEL
+################################
+##  N        %##################
+## ###################l#########
+## ################### #########
+## ################### #########
+#      q    pWwQ  1    #########
+################### ############
+#@   CyY   c         PLn #######
+################################

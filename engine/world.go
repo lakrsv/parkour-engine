@@ -2,9 +2,12 @@ package engine
 
 import (
 	"context"
+	"fmt"
 	"golang.org/x/time/rate"
 	"io"
 	"log/slog"
+	"reflect"
+	"runtime"
 	"runtime/debug"
 	"sync"
 	"time"
@@ -43,19 +46,25 @@ func (world *World) AddSystems(systems ...System) *World {
 	return world
 }
 
-func (world *World) CreateEntity(components ...any) int {
+func (world *World) CreateEntity(components ...any) uint32 {
 	entity := world.components.createEntity(components...)
+	var wg sync.WaitGroup
+	wg.Add(len(world.groups))
 	for _, group := range world.groups {
-		group.EvaluateEntity(entity, world.components)
+		group.EvaluateEntity(entity, world.components, &wg)
 	}
+	wg.Wait()
 	return entity
 }
 
-func (world *World) DeleteEntity(entity int) {
+func (world *World) DeleteEntity(entity uint32) {
 	world.components.deleteEntity(entity)
+	var wg sync.WaitGroup
+	wg.Add(len(world.groups))
 	for _, group := range world.groups {
-		group.EvaluateEntity(entity, world.components)
+		group.EvaluateEntity(entity, world.components, &wg)
 	}
+	wg.Wait()
 }
 
 func (world *World) GetGroup(m Matcher) *Group {
@@ -64,6 +73,100 @@ func (world *World) GetGroup(m Matcher) *Group {
 	}
 	world.groups[m] = newGroup(m, world.components)
 	return world.groups[m]
+}
+
+func (world *World) GetUniqueComponent(t reflect.Type) any {
+	if !world.components.hasComponent(t) {
+		slog.Error("Component not found in component storage")
+		return nil
+	}
+	set := world.components.getComponentSet(t)
+	if set.components.Len() != 1 {
+		slog.Error(fmt.Sprintf("Expected 1 entity in component set, found %d", set.components.Len()))
+		return nil
+	}
+	_, component, _ := set.components.Iterator().Next()
+	return component
+}
+
+func (world *World) ReplaceUniqueComponent(component any) {
+	t := reflect.TypeOf(component)
+	if !world.components.hasComponent(t) {
+		slog.Error("Component not found in component storage")
+		return
+	}
+	set := world.components.getComponentSet(t)
+	if set.components.Len() != 1 {
+		slog.Error(fmt.Sprintf("Expected 1 entity in component set, found %d", set.components.Len()))
+		return
+	}
+	id, _, _ := set.components.Iterator().Next()
+	world.ReplaceComponent(id, component)
+}
+
+func (world *World) GetEntityComponent(entity uint32, t reflect.Type) (any, bool) {
+	if !world.components.hasComponent(t) {
+		return nil, false
+	}
+	set := world.components.getComponentSet(t)
+	if set.components.Contains(entity) {
+		return set.getComponent(entity), true
+	}
+	return nil, false
+}
+
+func (world *World) ReplaceComponent(entity uint32, component any) {
+	if !world.components.hasComponent(reflect.TypeOf(component)) {
+		world.AddComponent(entity, component)
+		return
+	}
+	set := world.components.getComponentSet(reflect.TypeOf(component))
+	if !set.components.Contains(entity) {
+		world.AddComponent(entity, component)
+		return
+	}
+	set.replaceComponent(entity, component)
+	var wg sync.WaitGroup
+	wg.Add(len(world.groups))
+	for _, group := range world.groups {
+		group.EvaluateEntity(entity, world.components, &wg)
+	}
+	wg.Wait()
+}
+
+func (world *World) AddComponent(entity uint32, component any) {
+	if !world.components.hasComponent(reflect.TypeOf(component)) {
+		world.components.registerComponent(reflect.TypeOf(component))
+	}
+	set := world.components.getComponentSet(reflect.TypeOf(component))
+	if set.components.Contains(entity) {
+		slog.Error("Entity already registered in component storage", "stack", getStack())
+		return
+	}
+	set.addComponent(entity, component)
+	var wg sync.WaitGroup
+	wg.Add(len(world.groups))
+	for _, group := range world.groups {
+		group.EvaluateEntity(entity, world.components, &wg)
+	}
+	wg.Wait()
+}
+
+func (world *World) RemoveComponent(entity uint32, t reflect.Type) {
+	if !world.components.hasComponent(t) {
+		return
+	}
+	set := world.components.getComponentSet(t)
+	if !set.components.Contains(entity) {
+		return
+	}
+	set.removeEntity(entity)
+	var wg sync.WaitGroup
+	wg.Add(len(world.groups))
+	for _, group := range world.groups {
+		group.EvaluateEntity(entity, world.components, &wg)
+	}
+	wg.Wait()
 }
 
 func (world *World) Simulate(ctx context.Context) error {
@@ -113,7 +216,7 @@ func (world *World) Close() error {
 			if err := closer.Close(); err != nil {
 				slog.Error(
 					"Failed closing system %s",
-					"stack", debug.Stack(),
+					"stack", getStack(),
 				)
 			}
 		}
@@ -128,7 +231,7 @@ func (world *World) initialize() {
 			if err := system.(InitializeSystem).Initialize(world); err != nil {
 				slog.Error(
 					"Failed initializing system",
-					"stack", debug.Stack(),
+					"stack", getStack(),
 				)
 			}
 		}
@@ -156,7 +259,13 @@ func handlePanic() {
 		slog.Error(
 			"Panic",
 			"recover", r,
-			"stack", debug.Stack(),
+			"stack", getStack(),
 		)
 	}
+}
+
+func getStack() []byte {
+	buf := make([]byte, 1<<20)
+	len := runtime.Stack(buf, true)
+	return buf[:len]
 }

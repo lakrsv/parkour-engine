@@ -1,0 +1,27 @@
+CONFIG
+%: Color:Cyan
+tip: Color:Cyan
+TIP: Closed,Color:Cyan
+O: Closed,Color:Yellow
+o: Color:Yellow
+Y: Closed,Color:Red
+y: Color:Red
+R: Closed,Color:Red
+r: Color:Red
+h: Color:Yellow
+H: Closed,Color:Yellow
+HEADER
+################################
+## LEVEL 7/9 - CHAIN REACTION ##
+################################
+LEVEL
+################################
+####################         ###
+#   I    o     P  h# ####### ###
+# ##################  1##### ###
+#     rT    y####### #######H###
+# ##################  2##### ###
+#    RtYiOp  ####### ####### ###
+# ################## ####### ###
+#@                       ###%###
+################################

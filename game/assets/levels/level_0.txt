@@ -1,0 +1,11 @@
+// Tutorial level to teach movement and introduce goal
+CONFIG
+%: Color:Green
+HEADER
+################################
+##        COLORMANCER         ##
+################################
+LEVEL
+################################
+#@                          %  #
+################################

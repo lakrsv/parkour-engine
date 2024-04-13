@@ -1,7 +1,6 @@
 package engine
 
 import (
-	"golang.org/x/tools/container/intsets"
 	"reflect"
 	"testing"
 
@@ -28,96 +27,96 @@ func TestMatcherMatch(t *testing.T) {
 	testCases := []struct {
 		name     string
 		matcher  Matcher
-		expected []int
+		expected []uint32
 	}{
 		{
 			name:     "AllOfComponentMatcher_1",
 			matcher:  &AllOfComponentMatcher{Components: []reflect.Type{}},
-			expected: []int{},
+			expected: []uint32{},
 		},
 		{
 			name:     "AllOfComponentMatcher_2",
 			matcher:  &AllOfComponentMatcher{Components: []reflect.Type{typeA}},
-			expected: []int{0, 2},
+			expected: []uint32{0, 2},
 		},
 		{
 			name:     "AllOfComponentMatcher_3",
 			matcher:  &AllOfComponentMatcher{Components: []reflect.Type{typeB}},
-			expected: []int{1, 2},
+			expected: []uint32{1, 2},
 		},
 		{
 			name:     "AllOfComponentMatcher_4",
 			matcher:  &AllOfComponentMatcher{Components: []reflect.Type{typeA, typeB}},
-			expected: []int{2},
+			expected: []uint32{2},
 		},
 		{
 			name:     "AllOfComponentMatcher_5",
 			matcher:  &AllOfComponentMatcher{Components: []reflect.Type{typeA, typeB, typeC}},
-			expected: []int{},
+			expected: []uint32{},
 		},
 		{
 			name:     "AnyOfComponentMatcher_1",
 			matcher:  &AnyOfComponentMatcher{Components: []reflect.Type{}},
-			expected: []int{},
+			expected: []uint32{},
 		},
 		{
 			name:     "AnyOfComponentMatcher_2",
 			matcher:  &AnyOfComponentMatcher{Components: []reflect.Type{typeA}},
-			expected: []int{0, 2},
+			expected: []uint32{0, 2},
 		},
 		{
 			name:     "AnyOfComponentMatcher_3",
 			matcher:  &AnyOfComponentMatcher{Components: []reflect.Type{typeA, typeB}},
-			expected: []int{0, 1, 2},
+			expected: []uint32{0, 1, 2},
 		},
 		{
 			name:     "AnyOfComponentMatcher_4",
 			matcher:  &AnyOfComponentMatcher{Components: []reflect.Type{typeA, typeB, typeC}},
-			expected: []int{0, 1, 2, 3},
+			expected: []uint32{0, 1, 2, 3},
 		},
 		{
 			name:     "NoneOfComponentMatcher_1",
 			matcher:  &NoneOfComponentMatcher{Components: []reflect.Type{}},
-			expected: []int{0, 1, 2, 3},
+			expected: []uint32{0, 1, 2, 3},
 		},
 		{
 			name:     "NoneOfComponentMatcher_2",
 			matcher:  &NoneOfComponentMatcher{Components: []reflect.Type{typeA}},
-			expected: []int{1, 3},
+			expected: []uint32{1, 3},
 		},
 		{
 			name:     "NoneOfComponentMatcher_3",
 			matcher:  &NoneOfComponentMatcher{Components: []reflect.Type{typeB}},
-			expected: []int{0, 3},
+			expected: []uint32{0, 3},
 		},
 		{
 			name:     "NoneOfComponentMatcher_4",
 			matcher:  &NoneOfComponentMatcher{Components: []reflect.Type{typeC}},
-			expected: []int{0, 1, 2},
+			expected: []uint32{0, 1, 2},
 		},
 		{
 			name:     "NoneOfComponentMatcher_5",
 			matcher:  &NoneOfComponentMatcher{Components: []reflect.Type{typeA, typeB}},
-			expected: []int{3},
+			expected: []uint32{3},
 		},
 		{
 			name:     "NoneOfComponentMatcher_6",
 			matcher:  &NoneOfComponentMatcher{Components: []reflect.Type{typeA, typeB, typeC}},
-			expected: []int{},
+			expected: []uint32{},
 		},
 		{
 			name: "AllOfMatcher_1",
 			matcher: &AllOfMatcher{Matchers: []Matcher{
 				&AllOfComponentMatcher{Components: []reflect.Type{}},
 			}},
-			expected: []int{},
+			expected: []uint32{},
 		},
 		{
 			name: "AllOfMatcher_2",
 			matcher: &AllOfMatcher{Matchers: []Matcher{
 				&AllOfComponentMatcher{Components: []reflect.Type{typeA}},
 			}},
-			expected: []int{0, 2},
+			expected: []uint32{2, 0},
 		},
 		{
 			name: "AllOfMatcher_3",
@@ -125,7 +124,7 @@ func TestMatcherMatch(t *testing.T) {
 				&AllOfComponentMatcher{Components: []reflect.Type{typeA}},
 				&AllOfComponentMatcher{Components: []reflect.Type{typeB}},
 			}},
-			expected: []int{2},
+			expected: []uint32{2},
 		},
 		{
 			name: "AllOfMatcher_4",
@@ -133,7 +132,7 @@ func TestMatcherMatch(t *testing.T) {
 				&AllOfComponentMatcher{Components: []reflect.Type{typeA}},
 				&NoneOfComponentMatcher{Components: []reflect.Type{typeB}},
 			}},
-			expected: []int{0},
+			expected: []uint32{0},
 		},
 		{
 			name: "AllOfMatcher_5",
@@ -141,7 +140,7 @@ func TestMatcherMatch(t *testing.T) {
 				&AllOfComponentMatcher{Components: []reflect.Type{typeA}},
 				&AnyOfComponentMatcher{Components: []reflect.Type{typeC}},
 			}},
-			expected: []int{},
+			expected: []uint32{},
 		},
 		{
 			name: "AllOfMatcher_6",
@@ -149,21 +148,21 @@ func TestMatcherMatch(t *testing.T) {
 				&AllOfComponentMatcher{Components: []reflect.Type{typeA}},
 				&AnyOfComponentMatcher{Components: []reflect.Type{typeB}},
 			}},
-			expected: []int{2},
+			expected: []uint32{2},
 		},
 		{
 			name: "AnyOfMatcher_1",
 			matcher: &AnyOfMatcher{Matchers: []Matcher{
 				&AllOfComponentMatcher{Components: []reflect.Type{}},
 			}},
-			expected: []int{},
+			expected: []uint32{},
 		},
 		{
 			name: "AnyOfMatcher_2",
 			matcher: &AnyOfMatcher{Matchers: []Matcher{
 				&AllOfComponentMatcher{Components: []reflect.Type{typeA}},
 			}},
-			expected: []int{0, 2},
+			expected: []uint32{0, 2},
 		},
 		{
 			name: "AnyOfMatcher_3",
@@ -171,7 +170,7 @@ func TestMatcherMatch(t *testing.T) {
 				&AllOfComponentMatcher{Components: []reflect.Type{typeA}},
 				&AllOfComponentMatcher{Components: []reflect.Type{typeB}},
 			}},
-			expected: []int{0, 1, 2},
+			expected: []uint32{0, 1, 2},
 		},
 		{
 			name: "AnyOfMatcher_4",
@@ -179,7 +178,7 @@ func TestMatcherMatch(t *testing.T) {
 				&AllOfComponentMatcher{Components: []reflect.Type{typeA}},
 				&NoneOfComponentMatcher{Components: []reflect.Type{typeB}},
 			}},
-			expected: []int{0, 2, 3},
+			expected: []uint32{0, 2, 3},
 		},
 		{
 			name: "AnyOfMatcher_5",
@@ -187,7 +186,7 @@ func TestMatcherMatch(t *testing.T) {
 				&AllOfComponentMatcher{Components: []reflect.Type{typeA}},
 				&AnyOfComponentMatcher{Components: []reflect.Type{typeC}},
 			}},
-			expected: []int{0, 2, 3},
+			expected: []uint32{0, 2, 3},
 		},
 		{
 			name: "AnyOfMatcher_6",
@@ -195,21 +194,21 @@ func TestMatcherMatch(t *testing.T) {
 				&AllOfComponentMatcher{Components: []reflect.Type{typeA}},
 				&AnyOfComponentMatcher{Components: []reflect.Type{typeB}},
 			}},
-			expected: []int{0, 1, 2},
+			expected: []uint32{0, 1, 2},
 		},
 		{
 			name: "NoneOfMatcher_1",
 			matcher: &NoneOfMatcher{Matchers: []Matcher{
 				&AllOfComponentMatcher{Components: []reflect.Type{}},
 			}},
-			expected: []int{0, 1, 2, 3},
+			expected: []uint32{0, 1, 2, 3},
 		},
 		{
 			name: "NoneOfMatcher_2",
 			matcher: &NoneOfMatcher{Matchers: []Matcher{
 				&AllOfComponentMatcher{Components: []reflect.Type{typeA}},
 			}},
-			expected: []int{1, 3},
+			expected: []uint32{1, 3},
 		},
 		{
 			name: "NoneOfMatcher_3",
@@ -217,7 +216,7 @@ func TestMatcherMatch(t *testing.T) {
 				&AllOfComponentMatcher{Components: []reflect.Type{typeA}},
 				&AllOfComponentMatcher{Components: []reflect.Type{typeB}},
 			}},
-			expected: []int{3},
+			expected: []uint32{3},
 		},
 		{
 			name: "NoneOfMatcher_4",
@@ -225,7 +224,7 @@ func TestMatcherMatch(t *testing.T) {
 				&AllOfComponentMatcher{Components: []reflect.Type{typeA}},
 				&NoneOfComponentMatcher{Components: []reflect.Type{typeB}},
 			}},
-			expected: []int{1},
+			expected: []uint32{1},
 		},
 		{
 			name: "NoneOfMatcher_5",
@@ -233,7 +232,7 @@ func TestMatcherMatch(t *testing.T) {
 				&AllOfComponentMatcher{Components: []reflect.Type{typeA}},
 				&AnyOfComponentMatcher{Components: []reflect.Type{typeC}},
 			}},
-			expected: []int{1},
+			expected: []uint32{1},
 		},
 		{
 			name: "NoneOfMatcher_6",
@@ -241,7 +240,7 @@ func TestMatcherMatch(t *testing.T) {
 				&AllOfComponentMatcher{Components: []reflect.Type{typeA}},
 				&AnyOfComponentMatcher{Components: []reflect.Type{typeB}},
 			}},
-			expected: []int{3},
+			expected: []uint32{3},
 		},
 	}
 
@@ -256,25 +255,24 @@ func TestMatcherMatch(t *testing.T) {
 			for _, expected := range tc.expected {
 				result := tc.matcher.matchOne(storage, expected)
 				actual := toSlice(result)
-				assert.ElementsMatch(t, []int{expected}, actual)
+				assert.ElementsMatch(t, []uint32{expected}, actual)
 			}
 		})
 	}
 }
 
 // Helper function to convert intsets.Sparse to slice
-func toSlice(s *intsets.Sparse) []int {
-	result := &intsets.Sparse{}
-	result.Copy(s)
-
-	entities := make([]int, result.Len())
-	for i := 0; ; i++ {
-		val := result.Min()
-		if val == intsets.MaxInt {
+func toSlice(s *SparseSet[uint32]) []uint32 {
+	entities := make([]uint32, s.Len())
+	iterator := s.Iterator()
+	idx := 0
+	for {
+		id, _, ok := iterator.Next()
+		if !ok {
 			break
 		}
-		entities[i] = val
-		result.Remove(val)
+		entities[idx] = id
+		idx += 1
 	}
 	return entities
 }

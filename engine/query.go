@@ -1,13 +1,13 @@
 package engine
 
 import (
-	"golang.org/x/tools/container/intsets"
 	"reflect"
+	"sync"
 )
 
 type Matcher interface {
-	match(storage *ComponentStorage) *intsets.Sparse
-	matchOne(storage *ComponentStorage, entity int) *intsets.Sparse
+	match(storage *ComponentStorage) *SparseSet[uint32]
+	matchOne(storage *ComponentStorage, entity uint32) *SparseSet[uint32]
 }
 
 type AllOfComponentMatcher struct {
@@ -34,92 +34,93 @@ type NoneOfMatcher struct {
 	Matchers []Matcher
 }
 
-func (m *AllOfComponentMatcher) match(storage *ComponentStorage) *intsets.Sparse {
-	result := &intsets.Sparse{}
+func (m *AllOfComponentMatcher) match(storage *ComponentStorage) *SparseSet[uint32] {
+	result := NewSparseSet[uint32](0)
 	for i, t := range m.Components {
 		set := storage.getComponentSet(t)
 		if result.IsEmpty() && i == 0 {
-			result.Copy(set.entities)
+			result = result.UnionId(set.components.CopyId())
 		} else {
-			result.IntersectionWith(set.entities)
+			result = result.IntersectId(set.components.CopyId())
 		}
 	}
 	return result
 }
 
-func (m *AnyOfComponentMatcher) match(storage *ComponentStorage) *intsets.Sparse {
-	result := &intsets.Sparse{}
+func (m *AnyOfComponentMatcher) match(storage *ComponentStorage) *SparseSet[uint32] {
+	result := NewSparseSet[uint32](0)
 	for _, t := range m.Components {
 		set := storage.getComponentSet(t)
-		result.UnionWith(set.entities)
+		result = result.UnionId(set.components.CopyId())
 	}
 	return result
 }
 
-func (m *NoneOfComponentMatcher) match(storage *ComponentStorage) *intsets.Sparse {
-	result := &intsets.Sparse{}
-	result.Copy(storage.entities)
+func (m *NoneOfComponentMatcher) match(storage *ComponentStorage) *SparseSet[uint32] {
+	result := NewSparseSet[uint32](0)
+	result = result.UnionId(storage.entities.CopyId())
 	for _, t := range m.Components {
 		set := storage.getComponentSet(t)
-		result.DifferenceWith(set.entities)
+		result = result.DifferenceId(set.components.CopyId())
 	}
 	return result
 }
 
-func (m *AllOfMatcher) match(storage *ComponentStorage) *intsets.Sparse {
-	result := &intsets.Sparse{}
+func (m *AllOfMatcher) match(storage *ComponentStorage) *SparseSet[uint32] {
+	result := NewSparseSet[uint32](0)
 	for i, mx := range m.Matchers {
 		if i == 0 {
 			result = mx.match(storage)
 		} else {
-			result.IntersectionWith(mx.match(storage))
+			match := mx.match(storage)
+			result = result.IntersectId(match)
 		}
 	}
 	return result
 }
 
-func (m *AnyOfMatcher) match(storage *ComponentStorage) *intsets.Sparse {
-	result := &intsets.Sparse{}
+func (m *AnyOfMatcher) match(storage *ComponentStorage) *SparseSet[uint32] {
+	result := NewSparseSet[uint32](0)
 	for _, mx := range m.Matchers {
-		result.UnionWith(mx.match(storage))
+		result = result.UnionId(mx.match(storage)).CopyId()
 	}
 	return result
 }
 
-func (m *NoneOfMatcher) match(storage *ComponentStorage) *intsets.Sparse {
-	result := &intsets.Sparse{}
-	result.Copy(storage.entities)
+func (m *NoneOfMatcher) match(storage *ComponentStorage) *SparseSet[uint32] {
+	result := NewSparseSet[uint32](0)
+	result = result.UnionId(storage.entities.CopyId())
 	for _, mx := range m.Matchers {
-		result.DifferenceWith(mx.match(storage))
+		result = result.DifferenceId(mx.match(storage)).CopyId()
 	}
 	return result
 }
 
-func (m *AllOfComponentMatcher) matchOne(storage *ComponentStorage, entity int) *intsets.Sparse {
-	result := &intsets.Sparse{}
+func (m *AllOfComponentMatcher) matchOne(storage *ComponentStorage, entity uint32) *SparseSet[uint32] {
+	result := NewSparseSet[uint32](entity + 1)
 	if len(m.Components) == 0 {
 		return result
 	}
 	for _, t := range m.Components {
 		set := storage.getComponentSet(t)
-		if !set.entities.Has(entity) {
+		if !set.components.Contains(entity) {
 			result.Remove(entity)
 			return result
 		}
 	}
-	result.Insert(entity)
+	result.Insert(entity, entity)
 	return result
 }
 
-func (m *AnyOfComponentMatcher) matchOne(storage *ComponentStorage, entity int) *intsets.Sparse {
-	result := &intsets.Sparse{}
+func (m *AnyOfComponentMatcher) matchOne(storage *ComponentStorage, entity uint32) *SparseSet[uint32] {
+	result := NewSparseSet[uint32](entity + 1)
 	if len(m.Components) == 0 {
 		return result
 	}
 	for _, t := range m.Components {
 		set := storage.getComponentSet(t)
-		if set.entities.Has(entity) {
-			result.Insert(entity)
+		if set.components.Contains(entity) {
+			result.Insert(entity, entity)
 			return result
 		}
 	}
@@ -127,104 +128,113 @@ func (m *AnyOfComponentMatcher) matchOne(storage *ComponentStorage, entity int) 
 	return result
 }
 
-func (m *NoneOfComponentMatcher) matchOne(storage *ComponentStorage, entity int) *intsets.Sparse {
-	result := &intsets.Sparse{}
+func (m *NoneOfComponentMatcher) matchOne(storage *ComponentStorage, entity uint32) *SparseSet[uint32] {
+	result := NewSparseSet[uint32](entity + 1)
 	for _, t := range m.Components {
 		set := storage.getComponentSet(t)
-		if set.entities.Has(entity) {
+		if set.components.Contains(entity) {
 			result.Remove(entity)
 			return result
 		}
 	}
-	result.Insert(entity)
+	result.Insert(entity, entity)
 	return result
 }
 
-func (m *AllOfMatcher) matchOne(storage *ComponentStorage, entity int) *intsets.Sparse {
-	result := &intsets.Sparse{}
+func (m *AllOfMatcher) matchOne(storage *ComponentStorage, entity uint32) *SparseSet[uint32] {
+	result := NewSparseSet[uint32](entity + 1)
 	for i, mx := range m.Matchers {
 		if i == 0 {
 			result = mx.matchOne(storage, entity)
 		} else {
-			result.IntersectionWith(mx.matchOne(storage, entity))
+			result = result.IntersectId(mx.matchOne(storage, entity))
 		}
 	}
 	return result
 }
 
-func (m *AnyOfMatcher) matchOne(storage *ComponentStorage, entity int) *intsets.Sparse {
-	result := &intsets.Sparse{}
+func (m *AnyOfMatcher) matchOne(storage *ComponentStorage, entity uint32) *SparseSet[uint32] {
+	result := NewSparseSet[uint32](entity + 1)
 	for _, mx := range m.Matchers {
-		result.UnionWith(mx.matchOne(storage, entity))
+		result = result.UnionId(mx.matchOne(storage, entity))
 	}
 	return result
 }
 
-func (m *NoneOfMatcher) matchOne(storage *ComponentStorage, entity int) *intsets.Sparse {
-	result := &intsets.Sparse{}
-	result.Insert(entity)
+func (m *NoneOfMatcher) matchOne(storage *ComponentStorage, entity uint32) *SparseSet[uint32] {
+	result := NewSparseSet[uint32](entity + 1)
+	result.Insert(entity, entity)
 	for _, mx := range m.Matchers {
-		result.DifferenceWith(mx.matchOne(storage, entity))
+		result = result.DifferenceId(mx.matchOne(storage, entity))
 	}
 	return result
 }
 
 type Group struct {
 	matcher       Matcher
-	result        *intsets.Sparse
-	EntityAdded   chan int
-	EntityRemoved chan int
+	result        *SparseSet[uint32]
+	EntityAdded   chan uint32
+	EntityRemoved chan uint32
 }
 
 func newGroup(matcher Matcher, storage *ComponentStorage) *Group {
 	return &Group{
 		matcher:       matcher,
 		result:        matcher.match(storage),
-		EntityAdded:   make(chan int),
-		EntityRemoved: make(chan int),
+		EntityAdded:   make(chan uint32),
+		EntityRemoved: make(chan uint32),
 	}
 }
 
-func (g *Group) GetEntities() []int {
-	result := &intsets.Sparse{}
-	result.Copy(g.result)
-
-	entities := make([]int, result.Len())
-	for i := 0; ; i++ {
-		val := result.Min()
-		if val == intsets.MaxInt {
+func (g *Group) GetEntities() []uint32 {
+	entities := make([]uint32, g.result.Len())
+	iterator := g.result.Iterator()
+	idx := 0
+	for {
+		id, _, ok := iterator.Next()
+		if !ok {
 			break
 		}
-		entities[i] = val
-		result.Remove(val)
+		entities[idx] = id
+		idx++
 	}
 	return entities
 }
 
-func (g *Group) EvaluateEntity(entity int, storage *ComponentStorage) {
+func (g *Group) EvaluateEntity(entity uint32, storage *ComponentStorage, wg *sync.WaitGroup) {
 	go func() {
-		if !storage.entities.Has(entity) {
-			if g.result.Has(entity) {
+		defer wg.Done()
+		if !storage.entities.Contains(entity) {
+			if g.result.Contains(entity) {
 				g.result.Remove(entity)
-				g.EntityRemoved <- entity
+				select {
+				case g.EntityRemoved <- entity:
+				default:
+				}
 			}
 			return
 		}
 		result := g.matcher.matchOne(storage, entity)
 
-		if result.Has(entity) && g.result.Has(entity) {
+		if result.Contains(entity) && g.result.Contains(entity) {
 			return
 		}
-		if !result.Has(entity) && !g.result.Has(entity) {
+		if !result.Contains(entity) && !g.result.Contains(entity) {
 			return
 		}
 
-		if result.Has(entity) {
-			g.result.Insert(entity)
-			g.EntityAdded <- entity
+		if result.Contains(entity) {
+			g.result.Insert(entity, entity)
+			select {
+			case g.EntityAdded <- entity:
+			default:
+			}
 		} else {
 			g.result.Remove(entity)
-			g.EntityRemoved <- entity
+			select {
+			case g.EntityRemoved <- entity:
+			default:
+			}
 		}
 	}()
 }

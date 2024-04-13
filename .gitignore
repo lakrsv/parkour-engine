@@ -18,3 +18,8 @@
 # vendor/
 .idea/
 build/
+game/AudioProject/Backup/
+game/assets/audio/test_long.mp3
+game/assets/audio/test_short.mp3
+game/AudioProject/Audio/
+game/AudioProject/BackgroundMusic2.mp3

@@ -1,0 +1,32 @@
+CONFIG
+CBV: Open,Color:Cyan
+YUI: Closed,Color:Cyan
+cbyuiv: Color:Cyan
+P: Closed,Color:Red
+L: Open,Color:Yellow
+l: Color:Yellow
+M: Open,Color:Cyan
+m: Color:Cyan
+E: Open,Color:Red
+e: Color:Red
+nN: Color:Cyan
+N: Open
+QRJ: Open,Color:Red
+WTH: Closed,Color:Red
+qrtjwrh: Color:Red
+p: Color:Red
+%: Color:Green
+HEADER
+################################
+## LEVEL 9/9 - SIDE EFFECTS 2 ##
+################################
+LEVEL
+################################
+##       EMN %##################
+## ##################2       Pl#
+## ##########eP        #########
+## ###################       Pm#
+#  pjHhJrTtRqWwQ  1    #########
+################### ############
+#@   CyYcVuUvBiIb    P Ln#######
+################################

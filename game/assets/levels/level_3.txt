@@ -1,0 +1,14 @@
+// Tutorial introducing the fact that goals can be different colors, meaning you have to use summons to interact with them
+CONFIG
+YU: Closed
+yY:  Color:Green
+uU:  Color:Cyan
+%: Color:Cyan
+HEADER
+################################
+## LEVEL 3/9 - COLORS MATTER  ##
+################################
+LEVEL
+################################
+#@                           % #
+################################
