@@ -3,7 +3,6 @@ package engine
 type System interface {
 }
 
-//go:generate stringer -type=SystemType
 type SystemType int
 
 const (
