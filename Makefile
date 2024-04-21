@@ -25,9 +25,9 @@ run:
 	cd ./game && go run .
 
 
-build: generate build-win64 build-linux
+build: generate build-windows build-linux
 
-build-win64: ${BUILD_PATH}/windows/amd64
+build-windows: ${BUILD_PATH}/windows/amd64
 ${BUILD_PATH}/windows/amd64:
 	# Build Windows Binary
 	CGO_ENABLED="1" \
@@ -38,6 +38,7 @@ ${BUILD_PATH}/windows/amd64:
 	$(call package,windows,amd64)
 
 build-linux: ${BUILD_PATH}/linux/amd64
+
 ${BUILD_PATH}/linux/amd64:
 	GOOS="linux" \
 	GOARCH="amd64" \

@@ -6,6 +6,14 @@ Placeholder
 
 SDL2 (See the [SDL2](https://github.com/veandco/go-sdl2) setup requirements from the `go-sdl` bindings repository)
 
+# Building
+```shell
+cd engine && go mod tidy
+cd ../game && go mod tidy
+cd ../
+make clean build
+```
+
 ## Windows
 
 Add a blurb about how I configured WSL2, installed SDL2 through apt get and copied the SDL2 dependencies into the /usr
