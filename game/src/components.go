@@ -89,10 +89,7 @@ type ObstacleComponent struct {
 }
 
 func (c InputComponent) HasKey(key rune) bool {
-	if state, ok := c.keyState[key]; ok {
-		return state
-	}
-	return false
+	return c.keyState[key]
 }
 
 func (g GridComponent) GetCell(x, y int) int {
