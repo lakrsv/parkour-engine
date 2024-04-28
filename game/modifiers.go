@@ -1,4 +1,4 @@
-package src
+package game
 
 const (
 	OpenDoorModifier   = "Open"
