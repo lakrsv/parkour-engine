@@ -2,7 +2,7 @@ package main
 
 import (
 	"github.com/containerd/console"
-	"github.com/lakrsv/parkour/game/src"
+	"github.com/lakrsv/parkour-engine/game/src"
 )
 
 func main() {

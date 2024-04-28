@@ -2,7 +2,7 @@ package src
 
 import (
 	"github.com/fatih/color"
-	"github.com/lakrsv/parkour/engine"
+	"github.com/lakrsv/parkour-engine/engine"
 )
 
 type PlayerInputComponent struct {
