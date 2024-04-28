@@ -16,6 +16,7 @@ lint:
 prepare:
 	mkdir -p binaries/linux/amd64
 	mkdir -p binaries/windows/amd64
+	mkdir -p binaries/darwin/amd64
 
 clean: prepare
 	rm -rf ${BUILD_PATH}
@@ -24,7 +25,7 @@ run:
 	cd ./game && go run .
 
 
-build: generate build-windows build-linux
+build: generate build-windows build-linux build-darwin
 
 build-windows: ${BUILD_PATH}/windows/amd64
 ${BUILD_PATH}/windows/amd64:
@@ -43,6 +44,13 @@ ${BUILD_PATH}/linux/amd64:
 	GOARCH="amd64" \
 	go build -o ${BINARY_NAME}-linux ./game/
 	$(call package,linux,amd64)
+
+build-darwin: ${BUILD_PATH}/darwin/amd64
+${BUILD_PATH}/darwin/amd64:
+	GOOS="darwin" \
+	GOARCH="amd64" \
+	go build -o ${BINARY_NAME}-darwin -trimpath ./game/
+	$(call package,darwin,amd64)
 
 generate:
 	go generate ./engine/...
