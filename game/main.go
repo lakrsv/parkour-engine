@@ -3,7 +3,7 @@ package main
 import (
 	"embed"
 	"github.com/containerd/console"
-	"github.com/lakrsv/parkour/game/src"
+	"github.com/lakrsv/parkour-engine/game/src"
 )
 
 //go:embed assets/*

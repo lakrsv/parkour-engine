@@ -1,4 +1,4 @@
-module github.com/lakrsv/parkour/engine
+module github.com/lakrsv/parkour-engine/engine
 
 go 1.22.0
 

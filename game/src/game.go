@@ -5,7 +5,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/fatih/color"
-	"github.com/lakrsv/parkour/engine"
+	"github.com/lakrsv/parkour-engine/engine"
 	"io"
 	"io/fs"
 	"math"

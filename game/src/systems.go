@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"github.com/containerd/console"
 	"github.com/fatih/color"
-	"github.com/lakrsv/parkour/engine"
+	"github.com/lakrsv/parkour-engine/engine"
 	"log/slog"
 	"math"
 	"reflect"
