@@ -1,4 +1,4 @@
-package src
+package game
 
 import (
 	"fmt"
@@ -60,7 +60,6 @@ func loadSound(path string) *beep.Buffer {
 			return sound
 		}
 	}
-	return nil
 }
 
 func PlayBackgroundMusic() {
