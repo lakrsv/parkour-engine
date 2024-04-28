@@ -7,8 +7,8 @@ import (
 	"github.com/fatih/color"
 	"github.com/lakrsv/parkour/engine"
 	"io"
+	"io/fs"
 	"math"
-	"os"
 	"strings"
 	"unicode"
 )
@@ -58,8 +58,8 @@ func Run(level int) {
 }
 
 func loadLevel(level int, w *engine.World) *GridComponent {
-	file, e := os.Open(fmt.Sprintf("%s/levels/level_%d.txt", getBaseDirectory(), level))
-	defer func(file *os.File) {
+	file, e := content.Open(fmt.Sprintf("assets/levels/level_%d.txt", level))
+	defer func(file fs.File) {
 		err := file.Close()
 		if err != nil {
 			panic(err)
@@ -106,7 +106,7 @@ func loadLevel(level int, w *engine.World) *GridComponent {
 	}
 
 	// Load header
-	if _, err := file.Seek(0, io.SeekStart); err != nil {
+	if _, err := file.(io.Seeker).Seek(0, io.SeekStart); err != nil {
 		panic(err)
 	}
 	scanner = bufio.NewScanner(file)
@@ -151,7 +151,7 @@ func loadLevel(level int, w *engine.World) *GridComponent {
 
 	grid := &GridComponent{Width: width, Height: height, BackgroundEntities: make([]uint32, width*height), ForegroundEntities: make([]uint32, width*height), EffectEntities: make([]uint32, width*height)}
 
-	if _, err := file.Seek(0, io.SeekStart); err != nil {
+	if _, err := file.(io.Seeker).Seek(0, io.SeekStart); err != nil {
 		panic(err)
 	}
 	scanner = bufio.NewScanner(file)

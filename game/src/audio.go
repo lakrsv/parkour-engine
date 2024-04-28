@@ -8,7 +8,6 @@ import (
 	"github.com/gopxl/beep/speaker"
 	"github.com/gopxl/beep/wav"
 	"log/slog"
-	"os"
 	"time"
 )
 
@@ -16,23 +15,26 @@ const (
 	Rate beep.SampleRate = 44100
 )
 
-var baseDirectory = getBaseDirectory()
-var pickupColorSound = loadSound(fmt.Sprintf("%s/audio/pickup_color.wav", baseDirectory))
-var walkSound = loadSound(fmt.Sprintf("%s/audio/walk.wav", baseDirectory))
-var goalSound = loadSound(fmt.Sprintf("%s/audio/goal.wav", baseDirectory))
-var doorOpenSounds = loadDoorOpenSounds()
+var pickupColorSound *beep.Buffer
+var walkSound *beep.Buffer
+var goalSound *beep.Buffer
+var doorOpenSounds []beep.Buffer
 
 func InitAudio() {
 	if err := speaker.Init(Rate, Rate.N(time.Second/10)); err != nil {
 		slog.Error("Failed initializing speaker", "error", err)
 		return
 	}
+	pickupColorSound = loadSound("assets/audio/pickup_color.wav")
+	walkSound = loadSound("assets/audio/walk.wav")
+	goalSound = loadSound("assets/audio/goal.wav")
+	doorOpenSounds = loadDoorOpenSounds()
 }
 
 func loadDoorOpenSounds() []beep.Buffer {
 	var buffers []beep.Buffer
 	for i := range 11 {
-		sound := loadSound(fmt.Sprintf("%s/audio/door_open_%d.wav", baseDirectory, i))
+		sound := loadSound(fmt.Sprintf("assets/audio/door_open_%d.wav", i))
 		if sound != nil {
 			buffers = append(buffers, *sound)
 		}
@@ -41,7 +43,7 @@ func loadDoorOpenSounds() []beep.Buffer {
 }
 
 func loadSound(path string) *beep.Buffer {
-	f, err := os.Open(path)
+	f, err := content.Open(path)
 	defer f.Close()
 	if err != nil {
 		slog.Error("Failed opening pickup color audio file", "error", err)
@@ -64,7 +66,7 @@ func loadSound(path string) *beep.Buffer {
 func PlayBackgroundMusic() {
 	idx := 0
 	for {
-		f, err := os.Open(fmt.Sprintf("%s/audio/background_%d.mp3", baseDirectory, idx%2))
+		f, err := content.Open(fmt.Sprintf("assets/audio/background_%d.mp3", idx%2))
 		if err != nil {
 			slog.Error("Failed opening audio", "error", err)
 			return

@@ -1,11 +1,16 @@
 package main
 
 import (
+	"embed"
 	"github.com/containerd/console"
 	"github.com/lakrsv/parkour/game/src"
 )
 
+//go:embed assets/*
+var content embed.FS
+
 func main() {
+	src.SetAssets(content)
 	src.InitAudio()
 	go src.PlayBackgroundMusic()
 	current := console.Current()

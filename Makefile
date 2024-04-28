@@ -4,7 +4,6 @@ BUILD_PATH=build
 define package
 	mkdir -p "./${BUILD_PATH}/$(1)/$(2)"
     mv ${BINARY_NAME}-$(1)* ./${BUILD_PATH}/$(1)/$(2)
-    cp -r ./game/assets ./${BUILD_PATH}/$(1)/$(2)/assets
     cp -r ./binaries/$(1)/$(2)/. ./${BUILD_PATH}/$(1)/$(2)
 endef
 
