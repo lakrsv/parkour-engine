@@ -16,6 +16,7 @@ lint:
 prepare:
 	mkdir -p binaries/linux/amd64
 	mkdir -p binaries/windows/amd64
+	mkdir -p binaries/macos/amd64
 
 clean: prepare
 	rm -rf ${BUILD_PATH}
@@ -24,7 +25,12 @@ run:
 	cd ./game && go run .
 
 
-build: generate build-windows build-linux
+BUILD_NATIVE = build-linux
+ifeq ($(shell uname -s), Darwin)
+	BUILD_NATIVE = build-macos
+endif
+
+build: generate build-windows ${BUILD_NATIVE}
 
 build-windows: ${BUILD_PATH}/windows/amd64
 ${BUILD_PATH}/windows/amd64:
@@ -43,6 +49,13 @@ ${BUILD_PATH}/linux/amd64:
 	GOARCH="amd64" \
 	go build -o ${BINARY_NAME}-linux ./game/
 	$(call package,linux,amd64)
+
+build-macos: ${BUILD_PATH}/macos/amd64
+${BUILD_PATH}/macos/amd64:
+	GOOS="darwin" \
+	GOARCH="amd64" \
+	go build -o ${BINARY_NAME}-macos -trimpath ./game/
+	$(call package,macos,amd64)
 
 generate:
 	go generate ./engine/...
