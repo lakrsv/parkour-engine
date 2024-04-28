@@ -1,4 +1,4 @@
-package game
+package main
 
 import (
 	"atomicgo.dev/cursor"
