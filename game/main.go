@@ -2,7 +2,8 @@ package main
 
 import (
 	"embed"
-	"github.com/containerd/console"
+	"golang.org/x/term"
+	"os"
 )
 
 //go:embed assets/*
@@ -11,10 +12,10 @@ var content embed.FS
 func main() {
 	InitAudio()
 	go PlayBackgroundMusic()
-	current := console.Current()
-	defer current.Reset()
-	if err := current.SetRaw(); err != nil {
+	oldState, err := term.MakeRaw(int(os.Stdin.Fd()))
+	if err != nil {
 		panic(err)
 	}
+	defer term.Restore(int(os.Stdin.Fd()), oldState)
 	Run(0)
 }

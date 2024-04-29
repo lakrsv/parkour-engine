@@ -3,11 +3,11 @@ package main
 import (
 	"atomicgo.dev/cursor"
 	"fmt"
-	"github.com/containerd/console"
 	"github.com/fatih/color"
 	"github.com/lakrsv/parkour-engine/engine"
 	"log/slog"
 	"math"
+	"os"
 	"reflect"
 	"strings"
 	"time"
@@ -94,7 +94,6 @@ func (s *InputSystem) Close() error {
 }
 
 func (s *InputSystem) Initialize(w *engine.World) error {
-	current := console.Current()
 	s.inputEntity = w.CreateEntity(InputComponent{make(map[rune]bool)})
 	s.keyState = make(map[rune]bool)
 	s.quit = make(chan func(), 1)
@@ -106,7 +105,7 @@ func (s *InputSystem) Initialize(w *engine.World) error {
 			default:
 				//scanner.Scan()
 				b := make([]byte, 1)
-				read, err := current.Read(b)
+				read, err := os.Stdin.Read(b)
 				if err != nil {
 					panic(err)
 				}
