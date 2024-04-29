@@ -21,10 +21,6 @@ type DoorOpenPlayCountComponent struct {
 	Count int
 }
 
-type InputComponent struct {
-	keyState map[rune]bool
-}
-
 type RenderComponent struct {
 	Character rune
 }
@@ -86,10 +82,6 @@ type GridComponent struct {
 }
 
 type ObstacleComponent struct {
-}
-
-func (c InputComponent) HasKey(key rune) bool {
-	return c.keyState[key]
 }
 
 func (g GridComponent) GetCell(x, y int) int {

@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"github.com/fatih/color"
 	"github.com/lakrsv/parkour-engine/engine"
+	"github.com/veandco/go-sdl2/sdl"
 	"log/slog"
 	"math"
-	"os"
 	"reflect"
 	"strings"
 	"time"
@@ -82,48 +82,6 @@ func (s *RenderSystem) Update(w *engine.World) error {
 	return nil
 }
 
-type InputSystem struct {
-	quit        chan func()
-	keyState    map[rune]bool
-	inputEntity uint32
-}
-
-func (s *InputSystem) Close() error {
-	close(s.quit)
-	return nil
-}
-
-func (s *InputSystem) Initialize(w *engine.World) error {
-	s.inputEntity = w.CreateEntity(InputComponent{make(map[rune]bool)})
-	s.keyState = make(map[rune]bool)
-	s.quit = make(chan func(), 1)
-	go func() {
-		for {
-			select {
-			case <-s.quit:
-				return
-			default:
-				//scanner.Scan()
-				b := make([]byte, 1)
-				read, err := os.Stdin.Read(b)
-				if err != nil {
-					panic(err)
-				}
-				if read != 0 {
-					s.keyState[rune(b[0])] = true
-				}
-			}
-		}
-	}()
-	return nil
-}
-
-func (s *InputSystem) Update(w *engine.World) error {
-	w.ReplaceComponent(s.inputEntity, InputComponent{keyState: s.keyState})
-	s.keyState = make(map[rune]bool)
-	return nil
-}
-
 type PlayerInputSystem struct {
 	group *engine.Group
 }
@@ -137,14 +95,14 @@ func (p *PlayerInputSystem) Initialize(world *engine.World) error {
 }
 
 func (p *PlayerInputSystem) Update(world *engine.World) error {
-	input := reflect.ValueOf(world.GetUniqueComponent(reflect.TypeOf(InputComponent{}))).Interface().(InputComponent)
-	if input.HasKey('q') {
+	input := reflect.ValueOf(world.GetUniqueComponent(reflect.TypeOf(engine.InputComponent{}))).Interface().(engine.InputComponent)
+	if input.KeyPressed(sdl.K_q) {
 		if err := world.Close(); err != nil {
 			panic(err)
 		}
 		return nil
 	}
-	if input.HasKey('r') {
+	if input.KeyPressed(sdl.K_r) {
 		currentLevel := reflect.ValueOf(world.GetUniqueComponent(reflect.TypeOf(LevelComponent{}))).Interface().(LevelComponent).Level
 		if err := world.Close(); err != nil {
 			panic(err)
@@ -155,14 +113,14 @@ func (p *PlayerInputSystem) Update(world *engine.World) error {
 
 	// Movement
 	var x, y int
-	if input.HasKey('w') {
+	if input.KeyPressed(sdl.K_w) {
 		y = -1
-	} else if input.HasKey('s') {
+	} else if input.KeyPressed(sdl.K_s) {
 		y = 1
 	}
-	if input.HasKey('d') {
+	if input.KeyPressed(sdl.K_d) {
 		x = 1
-	} else if input.HasKey('a') {
+	} else if input.KeyPressed(sdl.K_a) {
 		x = -1
 	}
 	if x != 0 || y != 0 {
@@ -171,7 +129,7 @@ func (p *PlayerInputSystem) Update(world *engine.World) error {
 		}
 	}
 
-	if input.HasKey('e') {
+	if input.KeyPressed(sdl.K_e) {
 		for _, entity := range p.group.GetEntities() {
 			if _, ok := world.GetEntityComponent(entity, reflect.TypeOf(CreateSummonComponent{})); !ok {
 				world.AddComponent(entity, CreateSummonComponent{})

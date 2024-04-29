@@ -2,7 +2,6 @@ package main
 
 import (
 	"bufio"
-	"context"
 	"fmt"
 	"github.com/fatih/color"
 	"github.com/lakrsv/parkour-engine/engine"
@@ -19,7 +18,6 @@ func Run(level int) {
 	grid := loadLevel(level, w)
 	w.AddSystems(
 		&DeferDoorRenderSystem{},
-		&InputSystem{},
 		&PlayerInputSystem{},
 		&CreateSummonSystem{},
 		&SummonInputSystem{},
@@ -52,7 +50,7 @@ func Run(level int) {
 		DoorOpenPlayCountComponent{},
 	)
 
-	if err := w.Simulate(context.Background()); err != nil {
+	if err := w.Simulate(); err != nil {
 		panic(err)
 	}
 }

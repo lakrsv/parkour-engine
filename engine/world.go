@@ -1,9 +1,8 @@
 package engine
 
 import (
-	"context"
 	"fmt"
-	"golang.org/x/time/rate"
+	"github.com/veandco/go-sdl2/sdl"
 	"io"
 	"log/slog"
 	"reflect"
@@ -14,20 +13,21 @@ import (
 )
 
 type World struct {
-	cancel     context.CancelFunc
-	threads    sync.WaitGroup
+	wg         sync.WaitGroup
 	systems    map[SystemType][]System
 	components *ComponentStorage
 	groups     map[Matcher]*Group
+	running    bool
 	Time       *Time
 }
 
 func NewWorld() *World {
 	return &World{
 		systems:    map[SystemType][]System{},
-		Time:       newTime(0, time.Second/60),
+		Time:       newTime(time.Second/60, time.Second/60),
 		components: NewComponentStorage(),
 		groups:     make(map[Matcher]*Group),
+		running:    true,
 	}
 }
 
@@ -169,41 +169,72 @@ func (world *World) RemoveComponent(entity uint32, t reflect.Type) {
 	wg.Wait()
 }
 
-func (world *World) Simulate(ctx context.Context) error {
-	ctx, cancel := context.WithCancel(ctx)
-	world.cancel = cancel
+func (world *World) Simulate() error {
+	if err := sdl.Init(sdl.INIT_EVERYTHING); err != nil {
+		panic(err)
+	}
+	defer sdl.Quit()
 
+	window, err := sdl.CreateWindow("Window", sdl.WINDOWPOS_UNDEFINED, sdl.WINDOWPOS_UNDEFINED, 800, 480, sdl.WINDOW_SHOWN)
+	if err != nil {
+		panic(err)
+	}
+	defer window.Destroy()
+
+	_, err = window.GetSurface()
+	if err != nil {
+		panic(err)
+	}
 	world.initialize()
-
-	limiter := rate.NewLimiter(rate.Every(world.Time.Timestep), 1)
-
-	world.threads.Add(1)
-
-	go func() {
-		defer world.threads.Done()
-		for {
-			select {
-			case <-ctx.Done():
-				return
-			default:
-				if err := limiter.Wait(ctx); err != nil {
-					panic(err)
-				}
-				world.update()
-				world.Time.update()
+	world.CreateEntity(InputComponent{KeyState: make(map[sdl.Keycode]bool)})
+	for world.running {
+		input := make(map[sdl.Keycode]bool)
+		for event := sdl.PollEvent(); event != nil; event = sdl.PollEvent() {
+			key, state := world.handleEvent(event)
+			if key == sdl.K_UNKNOWN {
+				continue
+			}
+			if state == sdl.RELEASED {
+				input[key] = false
+			} else if state == sdl.PRESSED {
+				input[key] = true
 			}
 		}
-	}()
-	world.threads.Wait()
+		world.ReplaceUniqueComponent(InputComponent{KeyState: input})
+		loopTime := world.loop()
+		window.UpdateSurface()
+		delay := uint32(world.Time.Timestep.Milliseconds()) - loopTime
+		sdl.Delay(delay)
+	}
 	return nil
 }
 
+func (world *World) handleEvent(event sdl.Event) (sdl.Keycode, uint8) {
+	switch t := event.(type) {
+	case *sdl.QuitEvent: // NOTE: Please use `*sdl.QuitEvent` for `v0.4.x` (current version).
+		println("Quitting..")
+		world.running = false
+		break
+	case *sdl.KeyboardEvent:
+		return t.Keysym.Sym, t.State
+	}
+	return sdl.K_UNKNOWN, 0
+}
+
+func (world *World) loop() uint32 {
+	startTime := sdl.GetTicks()
+
+	world.update()
+	world.Time.update()
+
+	return sdl.GetTicks() - startTime
+}
+
 func (world *World) Close() error {
-	if world.cancel == nil {
+	if !world.running {
 		return nil
 	}
-	world.cancel()
-	world.cancel = nil
+	world.running = false
 
 	systems := map[System]bool{}
 	for _, s := range world.systems {
