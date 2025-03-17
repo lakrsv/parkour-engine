@@ -6,6 +6,7 @@ import (
 	"github.com/fatih/color"
 	"github.com/lakrsv/parkour-engine/engine"
 	"github.com/veandco/go-sdl2/sdl"
+	"github.com/veandco/go-sdl2/ttf"
 	"log/slog"
 	"math"
 	"reflect"
@@ -29,12 +30,22 @@ func (s *RenderSystem) Update(w *engine.World) error {
 	grid := reflect.ValueOf(w.GetUniqueComponent(reflect.TypeOf(GridComponent{}))).Interface().(GridComponent)
 	level := reflect.ValueOf(w.GetUniqueComponent(reflect.TypeOf(LevelComponent{}))).Interface().(LevelComponent)
 
+	var font *ttf.Font
+	var surface *sdl.Surface
+	var text *sdl.Surface
+
+	surface, _ = w.Window.GetSurface()
+
+	// Load the font for our text
+	font, _ = ttf.OpenFont("./assets/fonts/monaco.ttf", 16)
+	defer font.Close()
+
 	var sb strings.Builder
 
 	for _, headerLine := range level.Header {
 		cursor.StartOfLine()
 		sb.WriteString(headerLine)
-		sb.WriteRune('\r')
+		//sb.WriteRune('\r')
 		sb.WriteRune('\n')
 	}
 
@@ -55,16 +66,17 @@ func (s *RenderSystem) Update(w *engine.World) error {
 			}
 			if component, ok := w.GetEntityComponent(entity, reflect.TypeOf(RenderComponent{})); ok {
 				render := reflect.ValueOf(component).Interface().(RenderComponent)
-				if colorComponent, ok := w.GetEntityComponent(entity, reflect.TypeOf(ColorComponent{})); ok {
-					c := reflect.ValueOf(colorComponent).Interface().(ColorComponent).color
-					sb.WriteString(c.Sprint(string(render.Character)))
+				//if colorComponent, ok := w.GetEntityComponent(entity, reflect.TypeOf(ColorComponent{})); ok {
+				//c := reflect.ValueOf(colorComponent).Interface().(ColorComponent).color
+				sb.WriteString(string(render.Character))
+				//sb.WriteString(c.Sprint(string(render.Character)))
 
-				} else {
-					sb.WriteString(s.palette.GetColor(render.Character).Sprint(string(render.Character)))
-				}
+				//} else {
+				//sb.WriteString(s.palette.GetColor(render.Character).Sprint(string(render.Character)))
+				//}
 			}
 		}
-		sb.WriteRune('\r')
+		//sb.WriteRune('\r')
 		sb.WriteRune('\n')
 	}
 	cursor.StartOfLine()
@@ -79,6 +91,14 @@ func (s *RenderSystem) Update(w *engine.World) error {
 	fmt.Println(block + " " + color.New(color.FgHiWhite).Sprint("R = Restart"))
 	cursor.StartOfLine()
 	fmt.Println(block + " " + color.New(color.FgHiWhite).Sprint("Q = Quit"))
+
+	// Create a red text with the font
+	text, _ = font.RenderUTF8BlendedWrapped(sb.String(), sdl.Color{R: 255, G: 0, B: 0, A: 255}, 800)
+	defer text.Free()
+
+	// Draw the text around the center of the window
+	_ = text.Blit(nil, surface, &sdl.Rect{X: 400 - (text.W / 2), Y: 300 - (text.H / 2), W: 0, H: 0})
+
 	return nil
 }
 

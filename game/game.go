@@ -13,7 +13,7 @@ import (
 )
 
 func Run(level int) {
-	w := engine.NewWorld()
+	w := engine.NewWorld(800, 480)
 
 	grid := loadLevel(level, w)
 	w.AddSystems(

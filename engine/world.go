@@ -2,7 +2,6 @@ package engine
 
 import (
 	"fmt"
-	"github.com/veandco/go-sdl2/sdl"
 	"io"
 	"log/slog"
 	"reflect"
@@ -10,21 +9,28 @@ import (
 	"runtime/debug"
 	"sync"
 	"time"
+
+	"github.com/veandco/go-sdl2/sdl"
+	"github.com/veandco/go-sdl2/ttf"
 )
 
 type World struct {
-	wg         sync.WaitGroup
-	systems    map[SystemType][]System
-	components *ComponentStorage
-	groups     map[Matcher]*Group
-	running    bool
-	Time       *Time
+	wg            sync.WaitGroup
+	systems       map[SystemType][]System
+	width, height int32
+	components    *ComponentStorage
+	groups        map[Matcher]*Group
+	running       bool
+	Window        *sdl.Window
+	Time          *Time
 }
 
-func NewWorld() *World {
+func NewWorld(width, height int32) *World {
 	return &World{
 		systems:    map[SystemType][]System{},
 		Time:       newTime(time.Second/60, time.Second/60),
+		width:      width,
+		height:     height,
 		components: NewComponentStorage(),
 		groups:     make(map[Matcher]*Group),
 		running:    true,
@@ -174,19 +180,23 @@ func (world *World) Simulate() error {
 		panic(err)
 	}
 	defer sdl.Quit()
+	if err := ttf.Init(); err != nil {
+		panic(err)
+	}
+	defer ttf.Quit()
 
-	window, err := sdl.CreateWindow("Window", sdl.WINDOWPOS_UNDEFINED, sdl.WINDOWPOS_UNDEFINED, 800, 480, sdl.WINDOW_SHOWN)
+	window, err := sdl.CreateWindow("Window", sdl.WINDOWPOS_UNDEFINED, sdl.WINDOWPOS_UNDEFINED, world.width, world.height, sdl.WINDOW_SHOWN)
 	if err != nil {
 		panic(err)
 	}
 	defer window.Destroy()
+	world.Window = window
 
-	_, err = window.GetSurface()
-	if err != nil {
-		panic(err)
-	}
 	world.initialize()
 	world.CreateEntity(InputComponent{KeyState: make(map[sdl.Keycode]bool)})
+
+	surface, _ := window.GetSurface()
+
 	for world.running {
 		input := make(map[sdl.Keycode]bool)
 		for event := sdl.PollEvent(); event != nil; event = sdl.PollEvent() {
@@ -201,10 +211,14 @@ func (world *World) Simulate() error {
 			}
 		}
 		world.ReplaceUniqueComponent(InputComponent{KeyState: input})
+		surface.FillRect(nil, 0)
 		loopTime := world.loop()
 		window.UpdateSurface()
-		delay := uint32(world.Time.Timestep.Milliseconds()) - loopTime
-		sdl.Delay(delay)
+
+		if loopTime < uint32(world.Time.Timestep.Milliseconds()) {
+			delay := uint32(world.Time.Timestep.Milliseconds()) - loopTime
+			sdl.Delay(delay)
+		}
 	}
 	return nil
 }
