@@ -13,6 +13,7 @@ import (
 )
 
 func Run(level int) {
+	// TODO: Reuse world so we don't get multiple windows
 	w := engine.NewWorld(800, 480)
 
 	grid := loadLevel(level, w)

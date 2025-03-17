@@ -165,7 +165,6 @@ type MoveSystem struct {
 }
 
 func (m *MoveSystem) Initialize(world *engine.World) error {
-	//TODO implement me
 	m.group = world.GetGroup(&engine.AllOfComponentMatcher{Components: []reflect.Type{
 		reflect.TypeOf(MoveComponent{}),
 		reflect.TypeOf(PositionComponent{}),
