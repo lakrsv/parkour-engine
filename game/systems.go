@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"atomicgo.dev/cursor"
-	"github.com/fatih/color"
 	"github.com/lakrsv/parkour-engine/engine"
 	"github.com/veandco/go-sdl2/sdl"
 	"github.com/veandco/go-sdl2/ttf"
@@ -33,7 +32,6 @@ func (s *RenderSystem) Update(w *engine.World) error {
 
 	var font *ttf.Font
 	var surface *sdl.Surface
-	var text *sdl.Surface
 
 	surface, _ = w.Window.GetSurface()
 
@@ -46,7 +44,6 @@ func (s *RenderSystem) Update(w *engine.World) error {
 	for _, headerLine := range level.Header {
 		cursor.StartOfLine()
 		sb.WriteString(headerLine)
-		//sb.WriteRune('\r')
 		sb.WriteRune('\n')
 	}
 
@@ -67,38 +64,34 @@ func (s *RenderSystem) Update(w *engine.World) error {
 			}
 			if component, ok := w.GetEntityComponent(entity, reflect.TypeOf(RenderComponent{})); ok {
 				render := reflect.ValueOf(component).Interface().(RenderComponent)
-				//if colorComponent, ok := w.GetEntityComponent(entity, reflect.TypeOf(ColorComponent{})); ok {
-				//c := reflect.ValueOf(colorComponent).Interface().(ColorComponent).color
-				sb.WriteString(string(render.Character))
-				//sb.WriteString(c.Sprint(string(render.Character)))
-
-				//} else {
-				//sb.WriteString(s.palette.GetColor(render.Character).Sprint(string(render.Character)))
-				//}
+				var textColor sdl.Color
+				if colorComponent, ok := w.GetEntityComponent(entity, reflect.TypeOf(ColorComponent{})); ok {
+					c := reflect.ValueOf(colorComponent).Interface().(ColorComponent).color
+					textColor = sdl.Color{R: c.R, G: c.G, B: c.B, A: 255}
+				} else {
+					c := s.palette.GetColor(render.Character)
+					textColor = sdl.Color{R: c.R, G: c.G, B: c.B, A: 255}
+				}
+				text, _ := font.RenderUTF8Blended(string(render.Character), textColor)
+				defer text.Free()
+				_ = text.Blit(nil, surface, &sdl.Rect{X: int32(x * 16), Y: int32(y * 16), W: 0, H: 0})
 			}
 		}
-		//sb.WriteRune('\r')
-		sb.WriteRune('\n')
 	}
-	cursor.StartOfLine()
-	cursor.Up(grid.Height + 4 + len(level.Header))
-	fmt.Print(sb.String())
-	cursor.StartOfLine()
-	block := color.New(color.FgWhite).Sprint("##")
-	fmt.Println(block + " " + color.New(color.FgHiWhite).Sprint("WASD = Move"))
-	cursor.StartOfLine()
-	fmt.Println(block + " " + color.New(color.FgHiWhite).Sprint("E = Summon"))
-	cursor.StartOfLine()
-	fmt.Println(block + " " + color.New(color.FgHiWhite).Sprint("R = Restart"))
-	cursor.StartOfLine()
-	fmt.Println(block + " " + color.New(color.FgHiWhite).Sprint("Q = Quit"))
 
-	// Create a red text with the font
-	text, _ = font.RenderUTF8BlendedWrapped(sb.String(), sdl.Color{R: 255, G: 0, B: 0, A: 255}, 800)
-	defer text.Free()
+	// Render UI text
+	uiTexts := []string{
+		" WASD = Move",
+		" E = Summon",
+		" R = Restart",
+		" Q = Quit",
+	}
 
-	// Draw the text around the center of the window
-	_ = text.Blit(nil, surface, &sdl.Rect{X: 400 - (text.W / 2), Y: 300 - (text.H / 2), W: 0, H: 0})
+	for i, txt := range uiTexts {
+		text, _ := font.RenderUTF8Blended(txt, sdl.Color{R: 255, G: 255, B: 255, A: 255})
+		defer text.Free()
+		_ = text.Blit(nil, surface, &sdl.Rect{X: 0, Y: int32(grid.Height*16 + i*16), W: 0, H: 0})
+	}
 
 	return nil
 }
@@ -540,7 +533,7 @@ func (s *CreateSummonSystem) Update(world *engine.World) error {
 				if summonComponent, ok := world.GetEntityComponent(entity, reflect.TypeOf(SummonComponent{})); ok {
 					summon := reflect.ValueOf(summonComponent).Interface().(SummonComponent)
 					grid.ForegroundEntities[summonCell] = world.CreateEntity(
-						SummonBlueprint(summonPosition.X, summonPosition.Y, facing.X, facing.Y, summon.colorAttr)...,
+						SummonBlueprint(summonPosition.X, summonPosition.Y, facing.X, facing.Y, summon.color)...,
 					)
 				}
 			}

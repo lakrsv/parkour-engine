@@ -1,10 +1,10 @@
 package main
 
 import (
-	"github.com/fatih/color"
-	"github.com/lakrsv/parkour-engine/engine"
 	"reflect"
 	"unicode"
+
+	"github.com/lakrsv/parkour-engine/engine"
 )
 
 func ButtonBlueprint(x int, y int, char rune) []any {
@@ -19,7 +19,6 @@ func ClosedDoorBlueprint(x int, y int, char rune) []any {
 		DeferDoorRenderComponent{},
 		ObstacleComponent{},
 		TriggeredComponent{Symbol: char, Action: func(entity uint32, w *engine.World) {
-
 			doorOpenPlayCount := reflect.ValueOf(w.GetUniqueComponent(reflect.TypeOf(DoorOpenPlayCountComponent{}))).Interface().(DoorOpenPlayCountComponent)
 			playDoorOpenSound(doorOpenPlayCount.Count)
 			w.ReplaceUniqueComponent(DoorOpenPlayCountComponent{Count: doorOpenPlayCount.Count + 1})
@@ -70,8 +69,8 @@ func PlayerBlueprint(x int, y int) []any {
 		PlayerInputComponent{},
 		MoveComponent{},
 		FacingComponent{},
-		InteractsWithTriggersComponent{color: *color.New(color.FgGreen), colorAttr: color.FgGreen},
-		SummonComponent{color: *color.New(color.FgCyan), colorAttr: color.FgCyan},
+		InteractsWithTriggersComponent{color: struct{ R, G, B uint8 }{R: 0, G: 255, B: 0}, colorAttr: 0},
+		SummonComponent{color: struct{ R, G, B uint8 }{R: 0, G: 255, B: 255}, colorAttr: 0},
 	}
 }
 
@@ -90,22 +89,22 @@ func ExitBlueprint(x int, y int, level int) []any {
 	}
 }
 
-func SummonBlueprint(x int, y int, facingX int, facingY int, colorAttr color.Attribute) []any {
+func SummonBlueprint(x int, y int, facingX int, facingY int, color Color) []any {
 	return []any{
 		PositionComponent{X: x, Y: y},
 		RenderComponent{Character: Summon},
 		SummonInputComponent{X: facingX, Y: facingY},
 		MoveComponent{},
-		ColorComponent{color: *color.New(colorAttr), colorAttr: colorAttr},
-		InteractsWithTriggersComponent{color: *color.New(colorAttr), colorAttr: colorAttr},
+		ColorComponent{color: color, colorAttr: 0},
+		InteractsWithTriggersComponent{color: color, colorAttr: 0},
 	}
 }
 
-func SummonPickupBlueprint(x int, y int, colorAttr color.Attribute) []any {
+func SummonPickupBlueprint(x int, y int, color Color) []any {
 	return []any{
 		PositionComponent{X: x, Y: y},
 		RenderComponent{Character: SummonPickup},
-		ColorComponent{color: *color.New(colorAttr), colorAttr: colorAttr},
-		SummonPickupComponent{color: *color.New(colorAttr), colorAttr: colorAttr},
+		ColorComponent{color: color, colorAttr: 0},
+		SummonPickupComponent{color: color, colorAttr: 0},
 	}
 }

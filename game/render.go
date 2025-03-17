@@ -1,9 +1,5 @@
 package main
 
-import (
-	"github.com/fatih/color"
-)
-
 const (
 	Floor           = ' '
 	OpenDoor        = '\''
@@ -25,17 +21,21 @@ const (
 	YellowSummon    = '2'
 )
 
-type RunePalette struct {
-	runeColors map[rune]color.Color
+type Color struct {
+	R, G, B uint8
 }
 
-func NewRunePalette(runeColors map[rune]color.Color) RunePalette {
+type RunePalette struct {
+	runeColors map[rune]Color
+}
+
+func NewRunePalette(runeColors map[rune]Color) RunePalette {
 	return RunePalette{runeColors}
 }
 
-func (p RunePalette) GetColor(r rune) *color.Color {
+func (p RunePalette) GetColor(r rune) Color {
 	if col, ok := p.runeColors[r]; ok {
-		return &col
+		return col
 	}
-	return color.New(color.FgWhite)
+	return Color{R: 255, G: 255, B: 255} // White as default
 }

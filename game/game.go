@@ -3,13 +3,13 @@ package main
 import (
 	"bufio"
 	"fmt"
-	"github.com/fatih/color"
-	"github.com/lakrsv/parkour-engine/engine"
 	"io"
 	"io/fs"
 	"math"
 	"strings"
 	"unicode"
+
+	"github.com/lakrsv/parkour-engine/engine"
 )
 
 func Run(level int) {
@@ -26,20 +26,20 @@ func Run(level int) {
 		&TriggerSystem{},
 		&DirectionIndicatorSystem{},
 		&RenderSystem{palette: NewRunePalette(
-			map[rune]color.Color{
-				Floor:           *color.New(color.FgWhite),
-				Wall:            *color.New(color.FgWhite),
-				Player:          *color.New(color.FgGreen),
-				Button:          *color.New(color.FgGreen),
-				TriggeredButton: *color.New(color.FgGreen),
-				OpenDoor:        *color.New(color.FgWhite),
-				DoorHorizontal:  *color.New(color.FgWhite),
-				DoorVertical:    *color.New(color.FgWhite),
-				UpIndicator:     *color.New(color.FgGreen, color.Bold),
-				DownIndicator:   *color.New(color.FgGreen, color.Bold),
-				LeftIndicator:   *color.New(color.FgGreen, color.Bold),
-				RightIndicator:  *color.New(color.FgGreen, color.Bold),
-				Exit:            *color.New(color.FgWhite),
+			map[rune]Color{
+				Floor:           Color{R: 255, G: 255, B: 255},
+				Wall:            Color{R: 255, G: 255, B: 255},
+				Player:          Color{R: 0, G: 255, B: 0},
+				Button:          Color{R: 0, G: 255, B: 0},
+				TriggeredButton: Color{R: 0, G: 255, B: 0},
+				OpenDoor:        Color{R: 255, G: 255, B: 255},
+				DoorHorizontal:  Color{R: 255, G: 255, B: 255},
+				DoorVertical:    Color{R: 255, G: 255, B: 255},
+				UpIndicator:     Color{R: 0, G: 255, B: 0},
+				DownIndicator:   Color{R: 0, G: 255, B: 0},
+				LeftIndicator:   Color{R: 0, G: 255, B: 0},
+				RightIndicator:  Color{R: 0, G: 255, B: 0},
+				Exit:            Color{R: 255, G: 255, B: 255},
 			}),
 		},
 	)
@@ -212,17 +212,17 @@ func loadLevel(level int, w *engine.World) *GridComponent {
 					components...,
 				)
 			case CyanSummon:
-				components = append(components, SummonPickupBlueprint(x, y, color.FgCyan)...)
+				components = append(components, SummonPickupBlueprint(x, y, Color{R: 0, G: 255, B: 255})...)
 				grid.BackgroundEntities[idx-cellOffset] = w.CreateEntity(
 					components...,
 				)
 			case RedSummon:
-				components = append(components, SummonPickupBlueprint(x, y, color.FgRed)...)
+				components = append(components, SummonPickupBlueprint(x, y, Color{R: 255, G: 0, B: 0})...)
 				grid.BackgroundEntities[idx-cellOffset] = w.CreateEntity(
 					components...,
 				)
 			case YellowSummon:
-				components = append(components, SummonPickupBlueprint(x, y, color.FgYellow)...)
+				components = append(components, SummonPickupBlueprint(x, y, Color{R: 255, G: 255, B: 0})...)
 				grid.BackgroundEntities[idx-cellOffset] = w.CreateEntity(
 					components...,
 				)
@@ -258,21 +258,21 @@ func loadLevel(level int, w *engine.World) *GridComponent {
 func getConfigComponents(modifiers map[string]string) []any {
 	var components []any
 	if configColor, ok := modifiers[ColorModifier]; ok {
-		var cAttr color.Attribute
+		var color Color
 		switch configColor {
 		case "Cyan":
-			cAttr = color.FgCyan
+			color = Color{R: 0, G: 255, B: 255}
 		case "Green":
-			cAttr = color.FgGreen
+			color = Color{R: 0, G: 255, B: 0}
 		case "Red":
-			cAttr = color.FgRed
+			color = Color{R: 255, G: 0, B: 0}
 		case "Yellow":
-			cAttr = color.FgYellow
+			color = Color{R: 255, G: 255, B: 0}
 		default:
-			cAttr = color.FgWhite
+			color = Color{R: 255, G: 255, B: 255}
 		}
 
-		components = append(components, ColorComponent{color: *color.New(cAttr), colorAttr: cAttr})
+		components = append(components, ColorComponent{color: color, colorAttr: 0})
 	}
 	return components
 }

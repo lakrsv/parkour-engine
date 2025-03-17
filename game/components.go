@@ -1,7 +1,6 @@
 package main
 
 import (
-	"github.com/fatih/color"
 	"github.com/lakrsv/parkour-engine/engine"
 )
 
@@ -26,20 +25,26 @@ type RenderComponent struct {
 }
 
 type SummonComponent struct {
-	colorAttr color.Attribute
-	color     color.Color
+	colorAttr int
+	color     struct {
+		R, G, B uint8
+	}
 }
 
 type CreateSummonComponent struct{}
 
 type ColorComponent struct {
-	colorAttr color.Attribute
-	color     color.Color
+	colorAttr int
+	color     struct {
+		R, G, B uint8
+	}
 }
 
 type SummonPickupComponent struct {
-	colorAttr color.Attribute
-	color     color.Color
+	colorAttr int
+	color     struct {
+		R, G, B uint8
+	}
 }
 
 type FloorComponent struct{}
@@ -53,8 +58,10 @@ type MoveComponent struct {
 }
 
 type InteractsWithTriggersComponent struct {
-	colorAttr color.Attribute
-	color     color.Color
+	colorAttr int
+	color     struct {
+		R, G, B uint8
+	}
 }
 
 type FacingComponent struct {
