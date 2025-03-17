@@ -361,7 +361,7 @@ func (t *TriggerSystem) Update(world *engine.World) error {
 						triggerColor := reflect.ValueOf(triggerColorComponent).Interface().(ColorComponent)
 						entityTriggerInteractColor := reflect.ValueOf(entityTriggerInteractColorComponent).Interface().(InteractsWithTriggersComponent)
 
-						if triggerColor.colorAttr != entityTriggerInteractColor.colorAttr {
+						if triggerColor.color != entityTriggerInteractColor.color {
 							continue
 						}
 					}
@@ -460,7 +460,7 @@ func (s *DirectionIndicatorSystem) Update(world *engine.World) error {
 
 				if summonComponent, ok := world.GetEntityComponent(entity, reflect.TypeOf(SummonComponent{})); ok {
 					summon := reflect.ValueOf(summonComponent).Interface().(SummonComponent)
-					world.ReplaceComponent(directionIndicator, ColorComponent{colorAttr: summon.colorAttr, color: summon.color})
+					world.ReplaceComponent(directionIndicator, ColorComponent{color: summon.color})
 				}
 
 				world.ReplaceComponent(directionIndicator, RenderComponent{Character: char})
@@ -571,9 +571,9 @@ func (s *SummonPickupSystem) Update(world *engine.World) error {
 				summonPickup := reflect.ValueOf(summonPickupComponent).Interface().(SummonPickupComponent)
 				if summonComponent, ok := world.GetEntityComponent(entity, reflect.TypeOf(SummonComponent{})); ok {
 					summon := reflect.ValueOf(summonComponent).Interface().(SummonComponent)
-					if summonPickup.colorAttr != summon.colorAttr {
+					if summonPickup.color != summon.color {
 						playPickupSound()
-						world.ReplaceComponent(entity, SummonComponent{colorAttr: summonPickup.colorAttr, color: summonPickup.color})
+						world.ReplaceComponent(entity, SummonComponent{color: summonPickup.color})
 					}
 				}
 			}

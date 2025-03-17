@@ -25,8 +25,7 @@ type RenderComponent struct {
 }
 
 type SummonComponent struct {
-	colorAttr int
-	color     struct {
+	color struct {
 		R, G, B uint8
 	}
 }
@@ -34,15 +33,13 @@ type SummonComponent struct {
 type CreateSummonComponent struct{}
 
 type ColorComponent struct {
-	colorAttr int
-	color     struct {
+	color struct {
 		R, G, B uint8
 	}
 }
 
 type SummonPickupComponent struct {
-	colorAttr int
-	color     struct {
+	color struct {
 		R, G, B uint8
 	}
 }
@@ -58,8 +55,7 @@ type MoveComponent struct {
 }
 
 type InteractsWithTriggersComponent struct {
-	colorAttr int
-	color     struct {
+	color struct {
 		R, G, B uint8
 	}
 }

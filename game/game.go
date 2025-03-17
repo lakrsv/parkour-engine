@@ -272,7 +272,7 @@ func getConfigComponents(modifiers map[string]string) []any {
 			color = Color{R: 255, G: 255, B: 255}
 		}
 
-		components = append(components, ColorComponent{color: color, colorAttr: 0})
+		components = append(components, ColorComponent{color: color})
 	}
 	return components
 }

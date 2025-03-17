@@ -69,8 +69,8 @@ func PlayerBlueprint(x int, y int) []any {
 		PlayerInputComponent{},
 		MoveComponent{},
 		FacingComponent{},
-		InteractsWithTriggersComponent{color: struct{ R, G, B uint8 }{R: 0, G: 255, B: 0}, colorAttr: 0},
-		SummonComponent{color: struct{ R, G, B uint8 }{R: 0, G: 255, B: 255}, colorAttr: 0},
+		InteractsWithTriggersComponent{color: struct{ R, G, B uint8 }{R: 0, G: 255, B: 0}},
+		SummonComponent{color: struct{ R, G, B uint8 }{R: 0, G: 255, B: 255}},
 	}
 }
 
@@ -95,8 +95,8 @@ func SummonBlueprint(x int, y int, facingX int, facingY int, color Color) []any 
 		RenderComponent{Character: Summon},
 		SummonInputComponent{X: facingX, Y: facingY},
 		MoveComponent{},
-		ColorComponent{color: color, colorAttr: 0},
-		InteractsWithTriggersComponent{color: color, colorAttr: 0},
+		ColorComponent{color: color},
+		InteractsWithTriggersComponent{color: color},
 	}
 }
 
@@ -104,7 +104,7 @@ func SummonPickupBlueprint(x int, y int, color Color) []any {
 	return []any{
 		PositionComponent{X: x, Y: y},
 		RenderComponent{Character: SummonPickup},
-		ColorComponent{color: color, colorAttr: 0},
-		SummonPickupComponent{color: color, colorAttr: 0},
+		ColorComponent{color: color},
+		SummonPickupComponent{color: color},
 	}
 }
