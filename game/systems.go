@@ -201,7 +201,7 @@ func (m *MoveSystem) Update(world *engine.World) error {
 				if grid.ForegroundEntities[newCell] != math.MaxUint32 {
 					world.ReplaceComponent(entity, MoveComponent{0, 0})
 					if _, ok := world.GetEntityComponent(entity, reflect.TypeOf(FacingComponent{})); ok {
-						world.ReplaceComponent(entity, FacingComponent{move.X, move.Y})
+						world.ReplaceComponent(entity, FacingComponent(move))
 					}
 					continue
 				}
@@ -219,7 +219,7 @@ func (m *MoveSystem) Update(world *engine.World) error {
 
 				world.ReplaceComponent(entity, MoveComponent{0, 0})
 				if _, ok := world.GetEntityComponent(entity, reflect.TypeOf(FacingComponent{})); ok {
-					world.ReplaceComponent(entity, FacingComponent{move.X, move.Y})
+					world.ReplaceComponent(entity, FacingComponent(move))
 				}
 				world.ReplaceComponent(entity, newPosition)
 				playWalkSound()
@@ -281,11 +281,6 @@ func (s *DeferDoorRenderSystem) Update(world *engine.World) error {
 		}
 	}
 	return nil
-}
-
-type EntityWithComponent[T any] struct {
-	entity    uint32
-	component *T
 }
 
 type TriggerSystem struct {
@@ -460,7 +455,7 @@ func (s *DirectionIndicatorSystem) Update(world *engine.World) error {
 
 				if summonComponent, ok := world.GetEntityComponent(entity, reflect.TypeOf(SummonComponent{})); ok {
 					summon := reflect.ValueOf(summonComponent).Interface().(SummonComponent)
-					world.ReplaceComponent(directionIndicator, ColorComponent{color: summon.color})
+					world.ReplaceComponent(directionIndicator, ColorComponent(summon))
 				}
 
 				world.ReplaceComponent(directionIndicator, RenderComponent{Character: char})
@@ -492,7 +487,7 @@ func (s *SummonInputSystem) Update(world *engine.World) error {
 		for _, entity := range s.group.GetEntities() {
 			if summonInputComponent, ok := world.GetEntityComponent(entity, reflect.TypeOf(SummonInputComponent{})); ok {
 				summonInput := reflect.ValueOf(summonInputComponent).Interface().(SummonInputComponent)
-				world.ReplaceComponent(entity, MoveComponent{X: summonInput.X, Y: summonInput.Y})
+				world.ReplaceComponent(entity, MoveComponent(summonInput))
 			}
 		}
 	}
@@ -573,7 +568,7 @@ func (s *SummonPickupSystem) Update(world *engine.World) error {
 					summon := reflect.ValueOf(summonComponent).Interface().(SummonComponent)
 					if summonPickup.color != summon.color {
 						playPickupSound()
-						world.ReplaceComponent(entity, SummonComponent{color: summonPickup.color})
+						world.ReplaceComponent(entity, SummonComponent(summonPickup))
 					}
 				}
 			}

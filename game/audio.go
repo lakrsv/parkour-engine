@@ -2,13 +2,14 @@ package main
 
 import (
 	"fmt"
+	"log/slog"
+	"time"
+
 	"github.com/gopxl/beep"
 	"github.com/gopxl/beep/effects"
 	"github.com/gopxl/beep/mp3"
 	"github.com/gopxl/beep/speaker"
 	"github.com/gopxl/beep/wav"
-	"log/slog"
-	"time"
 )
 
 const (
@@ -44,22 +45,30 @@ func loadDoorOpenSounds() []beep.Buffer {
 
 func loadSound(path string) *beep.Buffer {
 	f, err := content.Open(path)
-	defer f.Close()
 	if err != nil {
-		slog.Error("Failed opening pickup color audio file", "error", err)
+		slog.Error("Failed opening audio file", "path", path, "error", err)
 		return nil
-	} else {
-		streamer, format, err := wav.Decode(f)
-		if err != nil {
-			slog.Error("Failed decoding mp3", "error", err)
-			return nil
-		} else {
-			defer streamer.Close()
-			sound := beep.NewBuffer(format)
-			sound.Append(streamer)
-			return sound
-		}
 	}
+	defer func() {
+		if err := f.Close(); err != nil {
+			slog.Error("Failed closing audio file", "path", path, "error", err)
+		}
+	}()
+
+	streamer, format, err := wav.Decode(f)
+	if err != nil {
+		slog.Error("Failed decoding wav", "error", err)
+		return nil
+	}
+	defer func() {
+		if err := streamer.Close(); err != nil {
+			slog.Error("Failed closing streamer", "error", err)
+		}
+	}()
+
+	sound := beep.NewBuffer(format)
+	sound.Append(streamer)
+	return sound
 }
 
 func PlayBackgroundMusic() {

@@ -74,7 +74,7 @@ func loadLevel(level int, w *engine.World) *GridComponent {
 		if line == "CONFIG" {
 			break
 		}
-		if strings.HasPrefix("//", line) {
+		if strings.HasPrefix(line, "//") {
 			continue
 		}
 	}
@@ -84,7 +84,7 @@ func loadLevel(level int, w *engine.World) *GridComponent {
 		if line == "HEADER" || line == "LEVEL" {
 			break
 		}
-		if strings.HasPrefix("//", line) {
+		if strings.HasPrefix(line, "//") {
 			continue
 		}
 		parts := strings.SplitN(line, ":", 2)
@@ -113,7 +113,7 @@ func loadLevel(level int, w *engine.World) *GridComponent {
 		if line == "HEADER" {
 			break
 		}
-		if strings.HasPrefix("//", line) {
+		if strings.HasPrefix(line, "//") {
 			continue
 		}
 	}
@@ -124,7 +124,7 @@ func loadLevel(level int, w *engine.World) *GridComponent {
 		if line == "LEVEL" {
 			break
 		}
-		if strings.HasPrefix("//", line) {
+		if strings.HasPrefix(line, "//") {
 			continue
 		}
 		header = append(header, line)
@@ -138,7 +138,7 @@ func loadLevel(level int, w *engine.World) *GridComponent {
 	height := 0
 	for scanner.Scan() {
 		line := scanner.Text()
-		if strings.HasPrefix("//", line) {
+		if strings.HasPrefix(line, "//") {
 			continue
 		}
 		if width == 0 {
@@ -159,7 +159,7 @@ func loadLevel(level int, w *engine.World) *GridComponent {
 		if line == "LEVEL" {
 			break
 		}
-		if strings.HasPrefix("//", line) {
+		if strings.HasPrefix(line, "//") {
 			continue
 		}
 	}
@@ -167,7 +167,7 @@ func loadLevel(level int, w *engine.World) *GridComponent {
 	idx := 0
 	for scanner.Scan() {
 		line := scanner.Text()
-		if strings.HasPrefix("//", line) {
+		if strings.HasPrefix(line, "//") {
 			continue
 		}
 		runes := bufio.NewReader(strings.NewReader(line))

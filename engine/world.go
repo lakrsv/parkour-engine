@@ -15,7 +15,6 @@ import (
 )
 
 type World struct {
-	wg            sync.WaitGroup
 	systems       map[SystemType][]System
 	width, height int32
 	components    *ComponentStorage
@@ -189,7 +188,11 @@ func (world *World) Simulate() error {
 	if err != nil {
 		panic(err)
 	}
-	defer window.Destroy()
+	defer func() {
+		if err := window.Destroy(); err != nil {
+			slog.Error("Failed destroying window", "error", err)
+		}
+	}()
 	world.Window = window
 
 	world.initialize()
@@ -211,9 +214,13 @@ func (world *World) Simulate() error {
 			}
 		}
 		world.ReplaceUniqueComponent(InputComponent{KeyState: input})
-		surface.FillRect(nil, 0)
+		if err := surface.FillRect(nil, 0); err != nil {
+			slog.Error("Failed filling surface", "error", err)
+		}
 		loopTime := world.loop()
-		window.UpdateSurface()
+		if err := window.UpdateSurface(); err != nil {
+			slog.Error("Failed updating surface", "error", err)
+		}
 
 		if loopTime < uint32(world.Time.Timestep.Milliseconds()) {
 			delay := uint32(world.Time.Timestep.Milliseconds()) - loopTime
@@ -225,10 +232,9 @@ func (world *World) Simulate() error {
 
 func (world *World) handleEvent(event sdl.Event) (sdl.Keycode, uint8) {
 	switch t := event.(type) {
-	case *sdl.QuitEvent: // NOTE: Please use `*sdl.QuitEvent` for `v0.4.x` (current version).
+	case *sdl.QuitEvent:
 		println("Quitting..")
 		world.running = false
-		break
 	case *sdl.KeyboardEvent:
 		return t.Keysym.Sym, t.State
 	}
@@ -236,12 +242,10 @@ func (world *World) handleEvent(event sdl.Event) (sdl.Keycode, uint8) {
 }
 
 func (world *World) loop() uint32 {
-	startTime := sdl.GetTicks()
-
+	startTime := sdl.GetTicks64()
 	world.update()
 	world.Time.update()
-
-	return sdl.GetTicks() - startTime
+	return uint32(sdl.GetTicks64() - startTime)
 }
 
 func (world *World) Close() error {
