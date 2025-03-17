@@ -1,17 +1,18 @@
 package main
 
 import (
-	"atomicgo.dev/cursor"
 	"fmt"
-	"github.com/fatih/color"
-	"github.com/lakrsv/parkour-engine/engine"
-	"github.com/veandco/go-sdl2/sdl"
-	"github.com/veandco/go-sdl2/ttf"
 	"log/slog"
 	"math"
 	"reflect"
 	"strings"
 	"time"
+
+	"atomicgo.dev/cursor"
+	"github.com/fatih/color"
+	"github.com/lakrsv/parkour-engine/engine"
+	"github.com/veandco/go-sdl2/sdl"
+	"github.com/veandco/go-sdl2/ttf"
 )
 
 type RenderSystem struct {
@@ -37,7 +38,7 @@ func (s *RenderSystem) Update(w *engine.World) error {
 	surface, _ = w.Window.GetSurface()
 
 	// Load the font for our text
-	font, _ = ttf.OpenFont("./assets/fonts/monaco.ttf", 16)
+	font, _ = ttf.OpenFont("./assets/fonts/consolas.ttf", 16)
 	defer font.Close()
 
 	var sb strings.Builder
