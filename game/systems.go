@@ -5,7 +5,6 @@ import (
 	"log/slog"
 	"math"
 	"reflect"
-	"strings"
 	"time"
 
 	"atomicgo.dev/cursor"
@@ -39,15 +38,20 @@ func (s *RenderSystem) Update(w *engine.World) error {
 	font, _ = ttf.OpenFont("./assets/fonts/consolas.ttf", 16)
 	defer font.Close()
 
-	var sb strings.Builder
-
-	for _, headerLine := range level.Header {
-		cursor.StartOfLine()
-		sb.WriteString(headerLine)
-		sb.WriteRune('\n')
+	// Render header text
+	for i, headerLine := range level.Header {
+		text, _ := font.RenderUTF8Blended(headerLine, sdl.Color{R: 255, G: 255, B: 255, A: 255})
+		defer text.Free()
+		_ = text.Blit(nil, surface, &sdl.Rect{X: 0, Y: int32(i * 16), W: 0, H: 0})
 	}
 
+	// Calculate header height for offset
+	headerHeight := len(level.Header) * 16
+
+	// Track current x position for each row
+	currentX := make([]int32, grid.Height)
 	for y := range grid.Height {
+		currentX[y] = 0
 		for x := range grid.Width {
 			entity := grid.EffectEntities[grid.GetCell(x, y)]
 			if _, ok := w.GetEntityComponent(entity, reflect.TypeOf(RenderComponent{})); !ok {
@@ -74,23 +78,25 @@ func (s *RenderSystem) Update(w *engine.World) error {
 				}
 				text, _ := font.RenderUTF8Blended(string(render.Character), textColor)
 				defer text.Free()
-				_ = text.Blit(nil, surface, &sdl.Rect{X: int32(x * 16), Y: int32(y * 16), W: 0, H: 0})
+				_ = text.Blit(nil, surface, &sdl.Rect{X: currentX[y], Y: int32(y*16 + headerHeight), W: 0, H: 0})
+				currentX[y] += text.W
 			}
 		}
 	}
 
 	// Render UI text
 	uiTexts := []string{
-		" WASD = Move",
-		" E = Summon",
-		" R = Restart",
-		" Q = Quit",
+		"WASD = Move",
+		"E = Summon",
+		"R = Restart",
+		"Q = Quit",
 	}
 
+	// Use a new variable for UI text x-position
 	for i, txt := range uiTexts {
 		text, _ := font.RenderUTF8Blended(txt, sdl.Color{R: 255, G: 255, B: 255, A: 255})
 		defer text.Free()
-		_ = text.Blit(nil, surface, &sdl.Rect{X: 0, Y: int32(grid.Height*16 + i*16), W: 0, H: 0})
+		_ = text.Blit(nil, surface, &sdl.Rect{X: 0, Y: int32(grid.Height*16 + headerHeight + i*16), W: 0, H: 0})
 	}
 
 	return nil
