@@ -14,26 +14,57 @@ import (
 	"github.com/veandco/go-sdl2/ttf"
 )
 
+var lock = &sync.Mutex{}
+
 type World struct {
-	systems       map[SystemType][]System
-	width, height int32
-	components    *ComponentStorage
-	groups        map[Matcher]*Group
-	running       bool
-	Window        *sdl.Window
-	Time          *Time
+	systems    map[SystemType][]System
+	components *ComponentStorage
+	groups     map[Matcher]*Group
+	running    bool
+	Window     *sdl.Window
+	Time       *Time
 }
 
-func NewWorld(width, height int32) *World {
+var worldInstance *World
+
+func GetInstance() *World {
+	if worldInstance == nil {
+		lock.Lock()
+		defer lock.Unlock()
+		if worldInstance == nil {
+			worldInstance = newWorld()
+		}
+	}
+	return worldInstance
+}
+
+func newWorld() *World {
 	return &World{
 		systems:    map[SystemType][]System{},
 		Time:       newTime(time.Second/60, time.Second/60),
-		width:      width,
-		height:     height,
 		components: NewComponentStorage(),
 		groups:     make(map[Matcher]*Group),
 		running:    true,
 	}
+}
+
+func (world *World) InitWindow(name string, width, height int32) {
+	if world.Window != nil {
+		return
+	}
+	if err := sdl.Init(sdl.INIT_EVERYTHING); err != nil {
+		panic(err)
+	}
+	if err := ttf.Init(); err != nil {
+		panic(err)
+	}
+
+	window, err := sdl.CreateWindow(name, sdl.WINDOWPOS_UNDEFINED, sdl.WINDOWPOS_UNDEFINED, width, height, sdl.WINDOW_SHOWN)
+	if err != nil {
+		panic(err)
+	}
+	print("Window created")
+	world.Window = window
 }
 
 func (world *World) AddSystems(systems ...System) *World {
@@ -175,30 +206,13 @@ func (world *World) RemoveComponent(entity uint32, t reflect.Type) {
 }
 
 func (world *World) Simulate() error {
-	if err := sdl.Init(sdl.INIT_EVERYTHING); err != nil {
-		panic(err)
+	if world.Window == nil {
+		panic("Window not initialised. Call InitWindow(width, height) first")
 	}
-	defer sdl.Quit()
-	if err := ttf.Init(); err != nil {
-		panic(err)
-	}
-	defer ttf.Quit()
-
-	window, err := sdl.CreateWindow("Window", sdl.WINDOWPOS_UNDEFINED, sdl.WINDOWPOS_UNDEFINED, world.width, world.height, sdl.WINDOW_SHOWN)
-	if err != nil {
-		panic(err)
-	}
-	defer func() {
-		if err := window.Destroy(); err != nil {
-			slog.Error("Failed destroying window", "error", err)
-		}
-	}()
-	world.Window = window
-
 	world.initialize()
 	world.CreateEntity(InputComponent{KeyState: make(map[sdl.Keycode]bool)})
 
-	surface, _ := window.GetSurface()
+	surface, _ := world.Window.GetSurface()
 
 	for world.running {
 		input := make(map[sdl.Keycode]bool)
@@ -218,7 +232,7 @@ func (world *World) Simulate() error {
 			slog.Error("Failed filling surface", "error", err)
 		}
 		loopTime := world.loop()
-		if err := window.UpdateSurface(); err != nil {
+		if err := world.Window.UpdateSurface(); err != nil {
 			slog.Error("Failed updating surface", "error", err)
 		}
 
@@ -248,12 +262,36 @@ func (world *World) loop() uint32 {
 	return uint32(sdl.GetTicks64() - startTime)
 }
 
-func (world *World) Close() error {
+func (world *World) Reset() error {
 	if !world.running {
 		return nil
 	}
 	world.running = false
 
+	world.resetSystems()
+	world.components = NewComponentStorage()
+	world.groups = make(map[Matcher]*Group)
+
+	world.running = true
+
+	return nil
+}
+
+func (world *World) Close() error {
+	world.Reset()
+
+	ttf.Quit()
+	sdl.Quit()
+	if err := world.Window.Destroy(); err != nil {
+		slog.Error(
+			"Failed destroying window",
+			"stack", getStack())
+	}
+	worldInstance = nil
+	return nil
+}
+
+func (world *World) resetSystems() {
 	systems := map[System]bool{}
 	for _, s := range world.systems {
 		for _, system := range s {
@@ -270,7 +308,7 @@ func (world *World) Close() error {
 			}
 		}
 	}
-	return nil
+	world.systems = map[SystemType][]System{}
 }
 
 func (world *World) initialize() {

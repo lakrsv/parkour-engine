@@ -81,7 +81,7 @@ func ExitBlueprint(x int, y int, level int) []any {
 		TriggerComponent{Symbol: Exit},
 		TriggeredComponent{Symbol: Exit, Action: func(entity uint32, w *engine.World) {
 			playGoalSound()
-			if err := w.Close(); err != nil {
+			if err := w.Reset(); err != nil {
 				panic(err)
 			}
 			Run(level)

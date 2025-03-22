@@ -35,7 +35,7 @@ ${BUILD_PATH}/windows/amd64:
     CC="x86_64-w64-mingw32-gcc" \
 	GOOS="windows" \
 	GOARCH="amd64" \
-	go build -o ${BINARY_NAME}-windows.exe ./game/
+	go build -ldflags="-H windowsgui" -o ${BINARY_NAME}-windows.exe ./game/
 	$(call package,windows,amd64)
 
 build-linux: ${BUILD_PATH}/linux/amd64
